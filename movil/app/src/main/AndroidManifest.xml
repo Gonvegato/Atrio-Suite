@@ -26,6 +26,13 @@
             </intent-filter>
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
+        <!-- Guías: una web dentro de Atrio, en su propia ventana (sale en Recientes) -->
+        <activity
+            android:name=".WebActivity"
+            android:exported="false"
+            android:label="Guía"
+            android:theme="@android:style/Theme.Material.NoActionBar"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard|uiMode|density" />
         <!-- Para compartir y abrir las capturas del PC guardadas en la app -->
         <provider
             android:name="androidx.core.content.FileProvider"
