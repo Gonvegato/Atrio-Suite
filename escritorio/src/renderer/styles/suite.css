@@ -1,5 +1,5 @@
 /* La suite con Ronrón: indicador del móvil, panel, capturas y partes para valorar.
-   El rojo «en directo» es el mismo que usa Ronrón en el móvil. */
+   El rojo «en directo» es el mismo que en el móvil. */
 :root { --live: #ff6b5e; --live-soft: rgba(255, 107, 94, .16); }
 body[data-scheme="niebla"], body[data-scheme="papel"] { --live: #d9443a; --live-soft: rgba(217, 68, 58, .14); }
 
@@ -23,10 +23,7 @@ body.no-motion .suite-btn.live .suite-dot { animation: none; }
 /* Panel lateral */
 .suite-panel { display: flex; flex-direction: column; }
 .suite-head { align-items: center; }
-.suite-logo { position: relative; width: 3.4rem; height: 3.4rem; flex: none; }
-.suite-logo span { position: absolute; width: 2.3rem; height: 2.3rem; border-radius: .7rem; }
-.suite-logo .rr { left: 0; top: 0; background: #b0102f; }
-.suite-logo .at { right: 0; bottom: 0; background: var(--accent); mix-blend-mode: screen; opacity: .9; }
+.suite-logo { width: 3.4rem; height: 3.4rem; flex: none; border-radius: .9rem; }
 .suite-body { padding: 0 1.6rem 1.6rem; overflow: auto; }
 .suite-body h3 { margin: 1.6rem 0 .8rem; font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); font-weight: 600; }
 .suite-devs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }

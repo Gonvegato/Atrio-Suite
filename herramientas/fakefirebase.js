@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 // Firebase de mentira para pruebas: Authentication (correo y contraseña, REST) y Realtime Database (REST)
-// con las mismas reglas que se ponen en la consola para las cuentas de Ronrón.
+// con las mismas reglas que se ponen en la consola para las cuentas de Atrio.
 // Uso: node fakefirebase.js [puerto] [archivo.json]   ·   TOKEN_TTL=segundos para probar que el pase caduca.
 const http = require('http');
 const fs = require('fs');
@@ -57,7 +57,7 @@ function sv(v) {
   return v;
 }
 
-// ---- Reglas (las de Account.RULES de Ronrón) ----
+// ---- Reglas (las de Account.RULES del móvil) ----
 function canRead(path, uid) {
   const p = parts(path);
   if (p[0] === 'config') return true;

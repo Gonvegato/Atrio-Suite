@@ -10,7 +10,7 @@ import java.net.URLEncoder
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-private const val IUA = "Ronron/3.0 (app personal; Android)"
+private const val IUA = "Atrio/4.2 (app personal; Android)"
 
 private fun iget(url: String): String {
     val c = URL(url).openConnection() as HttpURLConnection

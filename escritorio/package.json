@@ -2,7 +2,7 @@
   "name": "atrio",
   "productName": "Atrio",
   "version": "1.0.0",
-  "description": "Launcher minimalista para tus juegos (Linux y Windows), parte de la suite con Ronrón",
+  "description": "Atrio: tus juegos en el PC (Linux y Windows) y en el móvil",
   "main": "src/main/main.js",
   "author": "Gonzalo",
   "license": "MIT",

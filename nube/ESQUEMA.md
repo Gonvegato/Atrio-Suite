@@ -1,8 +1,8 @@
 # La nube de la suite
 
 Una sola base de datos de Firebase (Realtime Database) y Firebase Authentication con usuario y
-contraseña. Ronrón (móvil) y Atrio (PC) son dispositivos de la misma cuenta. **Las reglas no cambian**
-respecto a las que ya tenías (`reglas.json` es la misma copia que enseña Ronrón en Ajustes → Cuenta):
+contraseña. Atrio en el móvil y Atrio en el PC son dispositivos de la misma cuenta. **Las reglas no cambian**
+respecto a las que ya tenías (`reglas.json` es la misma copia que enseña Atrio en el móvil en Ajustes → Cuenta y pareja):
 todo lo nuevo cuelga de `/users/<uid>`, que solo puede leer y escribir su dueño (y leer su pareja).
 
 ```
@@ -10,7 +10,7 @@ todo lo nuevo cuelga de `/users/<uid>`, que solo puede leer y escribir su dueño
 /usernames/<usuario>                   -> uid
 /users/<uid>/
   name, user, partner                  como siempre
-  dev/<dispositivo>                    { name, user, device, updated, data }  datos de Ronrón (cada dispositivo el suyo)
+  dev/<dispositivo>                    { name, user, device, updated, data }  datos de tus fichas (cada dispositivo el suyo)
   stamps/<dispositivo>                 hora de su última subida  ← se escucha en tiempo real
   horas/<dispositivo>, horasAt         horas de juego de cada PC (Atrio)
   suite/                               ← NUEVO: todo lo de la suite, escuchado en tiempo real
@@ -48,7 +48,7 @@ de responderlas. En Atrio → Ajustes → Suite con el móvil se puede prohibir 
 
 PNG sin pérdida (o JPG si lo eliges) a la resolución real de la pantalla. Se suben en trozos de 512 KB
 (múltiplo de 4 caracteres, así cada trozo se decodifica por separado). El móvil las baja, las guarda en
-`Imágenes/Ronrón/<juego>` y en la app, marca `got/<su dispositivo>` y Atrio borra los trozos. En el PC se
+`Imágenes/Atrio/<juego>` y en la app, marca `got/<su dispositivo>` y Atrio borra los trozos. En el PC se
 quedan en `Imágenes/Atrio/<juego>`. Con el plan gratuito de Firebase (1 GB guardado, 10 GB/mes de descarga)
 caben unas 500 capturas 4K PNG al mes; como los trozos se borran al llegar, lo guardado no crece.
 

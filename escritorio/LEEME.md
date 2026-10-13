@@ -18,10 +18,10 @@ descarga «Atrio-instalador-Windows» de la última ejecución y ábrelo.
 En Windows lee Steam, Heroic, emuladores y juegos propios (Lutris no existe allí).
 Datos: `%LOCALAPPDATA%\Atrio-datos`.
 
-Con la cuenta de Ronrón iniciada, las horas de todos tus equipos se juntan en el calendario.
+Con tu cuenta de Atrio iniciada, las horas de todos tus equipos se juntan en el calendario.
 
-## La suite con Ronrón
+## Atrio en el móvil
 
-Con tu cuenta de Ronrón iniciada, el móvil ve en directo lo que juegas, pide capturas a resolución real,
+Con tu cuenta de Atrio iniciada, el móvil ve en directo lo que juegas, pide capturas a resolución real,
 lanza juegos, apunta ideas y valora cada partida al cerrarla. Qué puede hacer el móvil se decide en
-Ajustes → Suite con el móvil. Capturas en `~/Imágenes/Atrio` (o `~/Pictures/Atrio`). Más en el README de la raíz.
+Ajustes → Móvil. Capturas en `~/Imágenes/Atrio` (o `~/Pictures/Atrio`). Más en el README de la raíz.

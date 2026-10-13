@@ -647,7 +647,7 @@ async function ronronWatch() {
     // Con las partes jugadas activadas, los minutos se suman al cerrar el juego (no se cuentan dos veces)
     const segsOn = (config.get().suite || {}).autoSeg !== false;
     const what = await ronron.autoPlay({ id, name: ng.name, ...pics, minutes: segsOn ? 0 : (now - a.s) / 60000 }).catch(() => null);
-    if (what) send('notice', what === 'nuevo' ? `${ng.name} está ahora en Jugando en Ronrón` : `${ng.name} vuelve a Jugando en Ronrón`);
+    if (what) send('notice', what === 'nuevo' ? `${ng.name} está ahora en «Jugando»` : `${ng.name} vuelve a «Jugando»`);
   }
 }
 

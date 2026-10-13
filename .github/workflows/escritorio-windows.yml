@@ -1,4 +1,4 @@
-name: Atrio (Windows)
+name: Atrio (PC, Windows)
 on:
   push:
     paths: ['escritorio/**', '.github/workflows/escritorio-windows.yml']

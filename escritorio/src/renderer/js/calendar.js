@@ -207,7 +207,7 @@
         if (x.kind === 'g') return `Jugando · lo terminaste el ${A.ronron.fmtDay(x.e)}`;
         return x.item.status === 2 ? 'Dropeado más tarde' : 'Jugando';
       };
-      parts.push(h('h3', 'En Ronrón'), h('div.cal-games',
+      parts.push(h('h3', 'Tus fichas'), h('div.cal-games',
         spansSide.map((x) => h('button.cal-game.cal-rr-item', {
           'data-nav': true, 'data-zone': 'side', onclick: () => { cal.close(); A.ronron.open({ kind: x.kind, item: x.item }); },
         }, rrThumb(x.item), h('span.info', h('span.nm', x.item.name), h('span.tm', label(x))),

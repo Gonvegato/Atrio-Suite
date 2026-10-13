@@ -114,7 +114,7 @@
     const pass = A.dialogs.input('', { type: 'password', placeholder: 'Contraseña', autocomplete: 'current-password' });
     const key = A.dialogs.input('', { placeholder: 'Clave web de Firebase (empieza por AIza)', class: 'input mono' });
     const keyField = A.dialogs.field('Clave web de Firebase', key,
-      'Solo la primera vez, si tu Ronrón todavía no la ha dejado guardada. Está en la consola de Firebase → Configuración del proyecto → General → Clave de API web.');
+      'Solo la primera vez, si Atrio en el móvil todavía no la ha dejado guardada. Está en la consola de Firebase → Configuración del proyecto → General → Clave de API web.');
     keyField.style.display = st.status && st.status.needKey && st.status.askKey ? '' : 'none';
     const msg = h('p.note.rr-msg');
     const go = async () => {
@@ -137,7 +137,7 @@
     };
     for (const i of [user, pass, key]) i.addEventListener('submit-input', () => (i === user ? A.nav.focus(pass) : go()));
     return h('div.rr-login',
-      A.dialogs.field('Usuario de Ronrón', user),
+      A.dialogs.field('Usuario de Atrio', user),
       A.dialogs.field('Contraseña', pass),
       keyField,
       h('div.row', h('button.btn.primary', { 'data-nav': true, onclick: go }, 'Entrar')),
@@ -259,7 +259,7 @@
     if (!R.signed()) {
       stage.append(h('div.empty.rr-empty',
         h('h2', 'Tus juegos valorados'),
-        h('p', 'Entra con tu cuenta de Ronrón para ver aquí tus notas y opiniones, editarlas y apuntar lo que estés jugando. Todo lo que cambies aquí aparece en el móvil, y al revés.'),
+        h('p', 'Entra con tu cuenta de Atrio para ver aquí tus notas y opiniones, editarlas y apuntar lo que estés jugando. Todo lo que cambies aquí aparece en el móvil, y al revés.'),
         loginForm(() => A.app.render(null))));
       A.app.setBackdropFor(null);
       if (!A.nav.inOverlay()) A.nav.focusFirst('.rr-login input');
@@ -285,7 +285,7 @@
       h('span.rv-sync', s.err ? s.err : s.lastSync ? `Sincronizado ${A.timeAgo(s.lastSync)} · ${s.user}` : s.user),
       h('button.btn', { 'data-nav': true, 'data-zone': 'rv-head', onclick: () => R.newRating() }, A.icon('plus'), 'Valorar un juego'));
     const body = list.length ? h('div.rv-scroll.scroller', grid)
-      : h('div.rv-none', h('p', tab === 'curso' ? 'No estás jugando nada en Ronrón ahora mismo.' : 'Todavía no has valorado ningún juego.'));
+      : h('div.rv-none', h('p', tab === 'curso' ? 'No estás jugando nada ahora mismo.' : 'Todavía no has valorado ningún juego.'));
     stage.append(h('div.rv', head, body, cap));
 
     const show = (el) => {
@@ -379,7 +379,7 @@
 
       root.replaceChildren(bg, h('div.gp-shade'),
         h('div.gp-content',
-          h('div.gp-top', h('span.rr-kicker', kind === 'g' ? 'Valorado en Ronrón' : `${STATUS[item.status] || 'En curso'} · Ronrón`), title, h('div.gp-actions', actions, scoreBox)),
+          h('div.gp-top', h('span.rr-kicker', kind === 'g' ? 'Valorado' : `${STATUS[item.status] || 'En curso'}`), title, h('div.gp-actions', actions, scoreBox)),
           h('div.gp-bottom.rr-bottom', textBox, dataBox)));
       A.nav.focusFirst(focusSel || '.gp-play');
     };
@@ -412,8 +412,8 @@
           kind === 'g' ? mi(item.fav ? 'starFill' : 'star', item.fav ? 'Quitar de favoritos' : 'Favorito', () => edit({ op: 'saveGame', kind: 0, item: { ...item, fav: !item.fav } })) : null,
           mi('image', 'Cambiar portada, fondo y logo', () => R.pickArt(kind, item)),
           h('div.menu-sep'),
-          mi('trash', 'Borrar de Ronrón', () => A.dialogs.confirm(`Borrar ${item.name}`,
-            'Se borra de Ronrón en todos tus dispositivos (también en el móvil).', 'Borrar', async () => {
+          mi('trash', 'Borrar la ficha', () => A.dialogs.confirm(`Borrar ${item.name}`,
+            'Se borra en todos tus dispositivos (también en el móvil).', 'Borrar', async () => {
               if (await edit({ op: kind === 'g' ? 'deleteGame' : 'deletePlay', kind: 0, id: item.id }, 'Borrado')) if (detail) detail.layer.close();
             }), true)));
     });
@@ -469,7 +469,7 @@
           }
           for (const p of body.querySelectorAll('.pick.current')) p.classList.remove('current');
           el.classList.add('current');
-          A.app.toast(lib ? 'Guardado en Ronrón y en tu biblioteca' : 'Guardado en Ronrón');
+          A.app.toast(lib ? 'Guardado en la ficha y en tu biblioteca' : 'Guardado');
           if (A.app.filter() === 'valorados' && !detail) A.app.render(focusedId);
         }
         el.style.opacity = '';
@@ -700,7 +700,7 @@
     const existing = plays().find((p) => Number(p.id) === base.id);
     const item = existing ? { ...existing, status, start: existing.start || (status === 1 ? todayDay() : 0) }
       : { ...base, status, entries: [], chapter: 0, every: 3, start: status === 1 ? todayDay() : 0, end: 0, creator: '', platform: 'PC', pages: 0, minutes: Math.round(A.play.best(game).ms / 60000), ttbMain: 0, ttbExtra: 0, ttbFull: 0, ttbSrc: '', parts: [] };
-    await edit({ op: 'savePlay', kind: 0, item }, status === 1 ? `Jugando a ${game.name} en Ronrón` : `${game.name} en tu lista de Ronrón`);
+    await edit({ op: 'savePlay', kind: 0, item }, status === 1 ? `Jugando a ${game.name}` : `${game.name} en tu lista`);
   };
 
   // ---------------------------------------------------------------- Valorar un juego nuevo
@@ -738,7 +738,7 @@
       inp.addEventListener('submit-input', search);
       sheet.append(
         h('div.sheet-head', h('h2', 'Valorar un juego')),
-        h('div.sheet-body', h('p.note', 'Búscalo en SteamGridDB (es el mismo buscador que usa Ronrón, así la ficha coincide en el móvil).'),
+        h('div.sheet-body', h('p.note', 'Búscalo en SteamGridDB (el mismo buscador que en el móvil, así la ficha coincide).'),
           h('div.input-row', inp, h('button.btn.primary', { 'data-nav': true, onclick: search }, 'Buscar')), results),
         h('div.sheet-foot', h('button.btn', { 'data-nav': true, onclick: () => layer.close() }, 'Cerrar')));
       if (preset) search();
@@ -752,8 +752,8 @@
     const box = h('div.rr-card');
     const head = (t) => h('div.rr-card-head', h('span.rr-dot'), h('span', t));
     if (!m) {
-      box.append(head('Ronrón'),
-        h('p.rr-card-text', 'No lo tienes en Ronrón.'),
+      box.append(head('Tu ficha'),
+        h('p.rr-card-text', 'Aún no tiene ficha: ni valorado ni en curso.'),
         h('div.rr-card-actions',
           h('button.btn', { 'data-nav': true, 'data-zone': 'rr-card', onclick: () => R.start(game, 1) }, 'Empezar a jugarlo'),
           h('button.btn.quiet', { 'data-nav': true, 'data-zone': 'rr-card', onclick: () => R.newRating(game) }, 'Valorar')));
@@ -765,7 +765,7 @@
       const b = baremo(it);
       const lastNote = ((it.entries || []).filter((e) => e.note).slice(-1)[0] || {}).note;
       const pct = it.parts && it.parts.length ? Math.round(100 * it.parts.filter((p) => p.d).length / it.parts.length) : null;
-      box.append(head(`${STATUS[it.status] || 'En curso'} en Ronrón`),
+      box.append(head(`${STATUS[it.status] || 'En curso'}`),
         h('div.rr-card-main', b ? ring(b.general) : null,
           h('div.rr-card-info',
             h('span.rr-card-sub', [it.entries && it.entries.length ? A.plural(it.entries.length, 'apunte', 'apuntes') : 'Sin apuntes', pct !== null ? `${pct} % hecho` : null, it.start ? `desde el ${fmtDay(it.start)}` : null].filter(Boolean).join(' · ')),
@@ -778,7 +778,7 @@
           h('button.btn.quiet', { 'data-nav': true, 'data-zone': 'rr-card', onclick: () => R.openPlay(it.id) }, 'Ver')));
       return box;
     }
-    box.append(head('Valorado en Ronrón'),
+    box.append(head('Valorado'),
       h('div.rr-card-main', ring(num(it.general)),
         h('div.rr-card-info',
           h('span.rr-card-sub', [`media ${avg4(it)}`, it.end ? `terminado el ${fmtDay(it.end)}` : null].filter(Boolean).join(' · ')),
@@ -850,8 +850,8 @@
   R.settings = (redraw) => {
     const s = st.status || {};
     const wrap = h('div.set-block',
-      h('h2', 'Ronrón'),
-      h('p.lead', 'Tu cuenta de Ronrón: la pestaña Valorados y lo que estés jugando en la página de cada juego. Atrio es un dispositivo más de tu cuenta: lo que cambies aquí llega al móvil en unos segundos, y al revés.'));
+      h('h2', 'Cuenta'),
+      h('p.lead', 'Tu cuenta de Atrio: la pestaña Valorados y lo que estés jugando en la página de cada juego. Atrio es un dispositivo más de tu cuenta: lo que cambies aquí llega al móvil en unos segundos, y al revés.'));
     if (!s.signed) {
       wrap.append(loginForm(() => redraw()));
       return wrap;
@@ -864,7 +864,7 @@
       h('button.toggle', {
         'data-nav': true, 'aria-pressed': String(A.app.state().config.behavior.ronronAuto !== false),
         onclick: async () => { await A.app.patchConfig({ behavior: { ronronAuto: A.app.state().config.behavior.ronronAuto === false } }, { render: false }); redraw(); },
-      }, h('span.tx', h('span', 'Lo que juegues pasa a «Jugando» en Ronrón'),
+      }, h('span.tx', h('span', 'Lo que juegues pasa a «Jugando»'),
         h('small', 'Cuando Atrio ve que llevas 10 minutos con un juego que no tienes en curso, lo pone en Jugando desde ese día. Así sale en el calendario cada día hasta que lo marques como terminado. Los que ya tienes valorados no se tocan.')),
       h('span.knob')),
       h('p.note', 'La contraseña no se guarda: Atrio guarda un pase de sesión en tu carpeta de configuración, solo legible por tu usuario.'));

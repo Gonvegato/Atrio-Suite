@@ -1,4 +1,4 @@
-name: Ronrón (móvil)
+name: Atrio (móvil)
 on:
   push:
     paths: ['movil/**', 'herramientas/**', '.github/workflows/movil.yml']
@@ -33,10 +33,10 @@ jobs:
           grep -E "^e: |error:|What went wrong|Exception|FAILED|Caused by|Unresolved|expected|AssertionError" build.log | head -45 | while IFS= read -r l; do echo "::error::${l:0:900}"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: ronron-apk
+          name: atrio-movil-apk
           path: movil/app/build/outputs/apk/release/app-release.apk
       # Por si la versión optimizada diera algún problema: la de siempre, también firmada con la misma clave.
       - uses: actions/upload-artifact@v4
         with:
-          name: ronron-apk-depuracion
+          name: atrio-movil-apk-depuracion
           path: movil/app/build/outputs/apk/debug/app-debug.apk

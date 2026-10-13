@@ -572,7 +572,7 @@ fun SettingsScreen(
             // La versión sale del propio APK (antes estaba escrita a mano y se quedó en 3.6)
             val actx = androidx.compose.ui.platform.LocalContext.current
             val ver = remember { try { actx.packageManager.getPackageInfo(actx.packageName, 0).versionName } catch (e: Exception) { null } ?: "" }
-            Text("Atrio $ver para Android · suite con Atrio para PC", fontWeight = FontWeight.SemiBold)
+            Text("Atrio $ver", fontWeight = FontWeight.SemiBold)
             Text(
                 "Portadas de juegos: SteamGridDB. Libros: Open Library y Google Books. Películas: TMDB (este producto usa la API de TMDB, pero TMDB no lo respalda ni lo certifica). Series: TVmaze (CC BY-SA). Recomendaciones: RAWG. Letras: Fraunces e Inter (SIL Open Font License).",
                 color = UiSoft, fontSize = 13.sp

@@ -1,4 +1,4 @@
-name: Atrio (Linux)
+name: Atrio (PC, Linux)
 on:
   push:
     paths: ['escritorio/**', 'herramientas/**', '.github/workflows/escritorio.yml']
@@ -14,7 +14,7 @@ jobs:
       - name: Dependencias
         working-directory: escritorio
         run: npm ci && node node_modules/electron/install.js
-      - name: Prueba de la suite (Firebase de mentira + Atrio de verdad + móvil simulado)
+      - name: Prueba PC + móvil (Firebase de mentira + Atrio de verdad + móvil simulado)
         run: node herramientas/prueba-suite.js
         env:
           OUT: ${{ github.workspace }}/prueba-suite

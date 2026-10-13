@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 // Prueba de la suite de punta a punta, sin móvil: Firebase de mentira + Atrio de verdad (bajo Xvfb) + un «móvil»
-// simulado que hace lo mismo que Ronrón: ve el PC en directo, pide una captura, la baja, lanza un juego y
+// simulado que hace lo mismo que Atrio en el móvil: ve el PC en directo, pide una captura, la baja, lanza un juego y
 // comprueba que al cerrarlo llega la parte jugada para valorar.
 // Uso (desde la raíz del repositorio): node herramientas/prueba-suite.js
 const { spawn } = require('child_process');
@@ -42,7 +42,7 @@ async function until(fn, ms, every = 500) {
   let tok = su.idToken;
   const db = (m, p, b, q = '') => j(m, `${FB}${p}.json?auth=${tok}${q}`, b);
   await db('PUT', '/config/webKey', 'prueba');
-  // Lo que «el móvil» ya tiene en Ronrón: un juego en curso con el id de SteamGridDB 4242
+  // Lo que «el móvil» ya tiene en su cuenta: un juego en curso con el id de SteamGridDB 4242
   const play = { id: 4242, name: 'Juego de Prueba', cover: '', hero: '', status: 1, entries: [], chapter: 0, every: 3, start: 0, end: 0, creator: '', platform: 'PC', pages: 0, minutes: 0, updated: Date.now(), ttbMain: 0, ttbExtra: 0, ttbFull: 0, ttbSrc: '', parts: [], logo: '' };
   const data = { games: [], plays: [play], books: [], bplays: [], kinds: [], tombs: {}, kindsAt: 0, recs: [], reacts: {}, keys: {}, goals: {}, likes: {} };
   await db('PUT', `/users/${uid}/dev/mtest`, { name: 'gonzalo', user: 'gonzalo', device: 'android', updated: { '.sv': 'timestamp' }, data: JSON.stringify(data) });
@@ -126,7 +126,7 @@ async function until(fn, ms, every = 500) {
       }
       return null;
     }, 40000, 1000);
-    ok(seg && seg.src === 'atrio', `Parte jugada en Ronrón: ${seg ? JSON.stringify(seg) : '-'}`);
+    ok(seg && seg.src === 'atrio', `Parte jugada en la ficha: ${seg ? JSON.stringify(seg) : '-'}`);
     const idle = await until(async () => { const v = await db('GET', `/users/${uid}/suite/live/atrio-prueba`); return v && !v.game ? v : null; }, 20000);
     ok(!!idle, 'El directo vuelve a «sin jugar»');
 

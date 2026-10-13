@@ -19,8 +19,8 @@
     const on = phones();
     btn.classList.toggle('live', on.length > 0);
     btn.classList.toggle('off', !st.signed);
-    btn.setAttribute('aria-label', !st.signed ? 'Suite: entra con tu cuenta de Ronrón'
-      : on.length ? `Móvil conectado: ${on.map((d) => d.name).join(', ')}` : `Suite: ${st.conn}`);
+    btn.setAttribute('aria-label', !st.signed ? 'Móvil: entra con tu cuenta de Atrio'
+      : on.length ? `Móvil conectado: ${on.map((d) => d.name).join(', ')}` : `Móvil: ${st.conn}`);
     btn.title = btn.getAttribute('aria-label');
   }
 
@@ -62,7 +62,7 @@
         'data-nav': true, 'data-zone': 'shots', 'aria-label': `Captura de ${s.game || 'escritorio'}`,
         onclick: () => S.view(s, fill),
       }, h('img', { src: s.url, alt: '', loading: 'lazy', decoding: 'async' }))));
-      if (!list.length) box.append(h('p.gp-empty', key ? 'Aún no hay capturas de este juego. Pídelas desde el móvil (Ronrón → Ahora) o con el botón Capturar.' : 'Aún no hay capturas.'));
+      if (!list.length) box.append(h('p.gp-empty', key ? 'Aún no hay capturas de este juego. Pídelas desde el móvil (Atrio en el móvil → Mando) o con el botón Capturar.' : 'Aún no hay capturas.'));
     };
     await fill();
     return box;
@@ -75,17 +75,17 @@
       const draw = async () => {
         const devs = st.devices.slice().sort((a, b) => Number(b.online) - Number(a.online));
         sheet.replaceChildren(
-          h('div.side-head.suite-head', h('div.suite-logo', h('span.rr'), h('span.at')), h('div', h('h2', 'Suite Ronrón · Atrio'),
-            h('p', !st.signed ? 'Entra con tu cuenta de Ronrón para conectar el móvil' : phones().length ? `Móvil conectado: ${phones().map((d) => d.name).join(', ')}` : st.conn === 'conectado' ? 'Esperando a que abras Ronrón en el móvil' : `Sin conexión con la nube (${st.conn})`))),
+          h('div.side-head.suite-head', h('img.suite-logo', { src: 'icon.png', alt: '' }), h('div', h('h2', 'Atrio en el móvil'),
+            h('p', !st.signed ? 'Entra con tu cuenta de Atrio para conectar el móvil' : phones().length ? `Móvil conectado: ${phones().map((d) => d.name).join(', ')}` : st.conn === 'conectado' ? 'Esperando a que abras Atrio en el móvil' : `Sin conexión con la nube (${st.conn})`))),
           !st.signed
-            ? h('div.menu', h('button.menu-item', { 'data-nav': true, onclick: () => { layer.close(); A.settings.open('ronron'); } }, A.icon('heart'), h('span', 'Entrar con mi cuenta de Ronrón')))
+            ? h('div.menu', h('button.menu-item', { 'data-nav': true, onclick: () => { layer.close(); A.settings.open('ronron'); } }, A.icon('heart'), h('span', 'Entrar con mi cuenta de Atrio')))
             : h('div.suite-body',
               h('h3', 'Dispositivos'),
               devs.length ? h('ul.suite-devs', devs.map((d) => h('li', { 'data-on': String(d.online) },
-                h('span.dot'), h('span.n', d.name), h('small', `${d.app === 'ronron' ? 'Ronrón' : 'Atrio'}${d.online ? '' : ` · ${A.timeAgo(d.at)}`}`)))) : h('p.note', 'Abre Ronrón en el móvil con la misma cuenta.'),
+                h('span.dot'), h('span.n', d.name), h('small', `${d.app === 'ronron' ? 'móvil' : 'PC'}${d.online ? '' : ` · ${A.timeAgo(d.at)}`}`)))) : h('p.note', 'Abre Atrio en el móvil con la misma cuenta.'),
               h('div.suite-actions',
                 h('button.btn.primary', { 'data-nav': true, 'data-autofocus': true, onclick: () => S.shoot() }, A.icon('camera'), 'Capturar ahora'),
-                h('button.btn', { 'data-nav': true, onclick: () => { layer.close(); A.settings.open('suite'); } }, A.icon('sliders'), 'Ajustes de la suite')),
+                h('button.btn', { 'data-nav': true, onclick: () => { layer.close(); A.settings.open('suite'); } }, A.icon('sliders'), 'Ajustes del móvil')),
               h('h3', 'Últimas capturas'),
               await S.grid(null, 12),
               h('p.note', 'Desde el móvil puedes: ver en directo lo que juegas, pedir capturas a su resolución original, apuntar ideas, valorar cada partida al terminarla, lanzar juegos, mandar avisos a esta pantalla y suspender o apagar el equipo.')));
@@ -117,9 +117,9 @@
       methods.textContent = `Herramientas disponibles en este equipo, por orden: ${m.join(', ')}. ${A.WIN ? '' : 'En KDE se usa Spectacle (sin avisos); en Sway o Hyprland, grim; en GNOME, gnome-screenshot.'}`;
     }).catch(() => {});
     return h('div.set-block',
-      h('h2', 'Suite con Ronrón'),
-      h('p.lead', 'Atrio y Ronrón (en el móvil) comparten tu cuenta y se hablan en tiempo real: el móvil ve lo que juegas, pide capturas y valora cada partida. Aquí decides qué puede hacer el móvil en este equipo.'),
-      !st.signed ? h('p.note.warn', 'Para usar la suite, entra con tu cuenta en Ajustes → Ronrón.') : null,
+      h('h2', 'Móvil'),
+      h('p.lead', 'Atrio en el PC y Atrio en el móvil comparten tu cuenta y se hablan en tiempo real: el móvil ve lo que juegas, pide capturas y valora cada partida. Aquí decides qué puede hacer el móvil en este equipo.'),
+      !st.signed ? h('p.note.warn', 'Para conectar el móvil, entra con tu cuenta en Ajustes → Cuenta.') : null,
       h('h3', 'Desde el móvil'),
       tg('Hacer capturas', 'remoteShot', 'A la resolución real de la pantalla'),
       tg('Lanzar juegos', 'remoteLaunch'),
@@ -131,9 +131,9 @@
       tg('Enviarlas al móvil', 'shotUpload', 'Si no, solo se guardan en este PC (Imágenes/Atrio)'),
       methods,
       h('h3', 'Partes jugadas'),
-      tg('Guardar cada partida para valorarla', 'autoSeg', 'Al cerrar un juego que tienes en «Jugando» en Ronrón'),
+      tg('Guardar cada partida para valorarla', 'autoSeg', 'Al cerrar un juego que tienes en «Jugando»'),
       A.dialogs.seg([['5', '5 min o más'], ['15', '15 min o más'], ['30', '30 min o más']], String(c.segMin || 5), (v) => set({ segMin: Number(v) })),
-      h('p.note', 'Con Ronrón abierto, las partes llegan al móvil al momento; con la app cerrada, te avisa en unos minutos (Android revisa cada cuarto de hora). También puedes valorarlas aquí, en la ficha de Ronrón del juego.'));
+      h('p.note', 'Con Atrio abierto en el móvil, las partes llegan al móvil al momento; con la app cerrada, te avisa en unos minutos (Android revisa cada cuarto de hora). También puedes valorarlas aquí, en la ficha del juego (pestaña Valorados → En curso).'));
   };
 
   // ---------- Eventos del proceso principal ----------
@@ -144,7 +144,7 @@
     if (A.gamepage.isOpen()) A.gamepage.refresh('play');
   });
   A.api.on('seg', (x) => {
-    A.app.toast(`Partida de ${x.name} guardada en Ronrón (${x.min} min): valórala en el móvil o en su ficha`);
+    A.app.toast(`Partida de ${x.name} guardada (${x.min} min): valórala en el móvil o en su ficha`);
   });
   A.api.on('remote', (r) => {
     if (r.op === 'page' && r.key && A.app.game(r.key)) { A.dialogs.closeAll(); A.gamepage.open(r.key); }

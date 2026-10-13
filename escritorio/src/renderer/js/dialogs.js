@@ -109,9 +109,9 @@
             // Ronrón: valorar o apuntar este juego
             if (!A.ronron || !A.ronron.signed()) return null;
             const m = A.ronron.entryFor(g);
-            if (m && m.type === 'play' && m.item.status === 1) return menuItem('heart', 'Apuntar en Ronrón', () => { layer.close(); A.ronron.addNote(m.item); });
+            if (m && m.type === 'play' && m.item.status === 1) return menuItem('heart', 'Apuntar', () => { layer.close(); A.ronron.addNote(m.item); });
             if (m && m.type === 'game') return menuItem('heart', 'Ver tu valoración', () => { layer.close(); A.ronron.openGame(m.item.id); }, { sub: String(m.item.general) });
-            return menuItem('heart', 'Valorar en Ronrón', () => { layer.close(); A.ronron.newRating(g); });
+            return menuItem('heart', 'Valorar', () => { layer.close(); A.ronron.newRating(g); });
           })(),
           h('div.menu-sep'),
           menuItem('image', 'Cambiar arte', () => { layer.close(); dialogs.artPicker(key, 'cover'); }),

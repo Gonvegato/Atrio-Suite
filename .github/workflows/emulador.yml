@@ -1,4 +1,4 @@
-name: Prueba en emulador (Ronrón + Atrio)
+name: Prueba en emulador (Atrio móvil + PC)
 on:
   push:
     paths: ['movil/**', 'escritorio/src/**', 'herramientas/**', '.github/workflows/emulador.yml']
@@ -27,7 +27,7 @@ jobs:
       - name: Compilar versión optimizada
         working-directory: movil
         run: gradle assembleRelease
-      - name: Atrio (para la parte de la suite)
+      - name: Atrio en el PC (para la parte en directo)
         working-directory: escritorio
         run: npm ci && node node_modules/electron/install.js
       - name: Activar KVM

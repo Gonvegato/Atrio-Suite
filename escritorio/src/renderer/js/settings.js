@@ -16,8 +16,8 @@
     ['propios', 'Juegos añadidos', 'plus'],
     ['steamgriddb', 'SteamGridDB', 'image'],
     ['ocultos', 'Juegos ocultos', 'hide'],
-    ['ronron', 'Ronrón', 'heart'],
-    ['suite', 'Suite con el móvil', 'phone'],
+    ['ronron', 'Cuenta', 'heart'],
+    ['suite', 'Móvil', 'phone'],
     ['comportamiento', 'Comportamiento', 'sliders'],
   ];
 

@@ -127,7 +127,7 @@ fun LiveCard(
                 }
             }
         } else {
-            SuiteIntro("Conecta tu PC", "Instala Atrio 1.0 en el PC y entra con esta misma cuenta (en el PC: Ajustes → Ronrón). Al abrirlo aparecerá aquí en directo: capturas, apuntes, partidas para valorar y el mando del PC.", onRemote)
+            SuiteIntro("Conecta tu PC", "Instala Atrio 1.0 en el PC y entra con esta misma cuenta (en el PC: Ajustes → Cuenta). Al abrirlo aparecerá aquí en directo: capturas, apuntes, partidas para valorar y el mando del PC.", onRemote)
         }
         return
     }
@@ -204,7 +204,7 @@ fun SuiteIntro(title: String, text: String, onClick: () -> Unit) {
         Icon(Icons.Rounded.Computer, null, tint = LiveColor, modifier = Modifier.size(28.dp))
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Overline("Novedad · Suite con Atrio")
+            Overline("Novedad · Atrio en el PC")
             Text(title, fontFamily = Display, fontSize = 20.sp)
             Spacer(Modifier.height(4.dp))
             Text(text, color = Muted, fontSize = 13.sp)
@@ -693,7 +693,7 @@ private fun EmptySuite() {
         Spacer(Modifier.height(12.dp))
         Text("Ningún PC conectado", fontFamily = Display, fontSize = 22.sp)
         Spacer(Modifier.height(6.dp))
-        Text("Abre Atrio en el PC y entra con tu cuenta (en el PC: Ajustes → Ronrón). En cuanto esté abierto aparecerá aquí, en directo.",
+        Text("Abre Atrio en el PC y entra con tu cuenta (en el PC: Ajustes → Cuenta). En cuanto esté abierto aparecerá aquí, en directo.",
             color = Muted, textAlign = TextAlign.Center, fontSize = 14.sp)
     }
 }

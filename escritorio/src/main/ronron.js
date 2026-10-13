@@ -205,7 +205,7 @@ async function db(method, p, body, query = '', okDenied = true) {
   if (r.code === 401) r = await go(true);
   if (r.code === 401 || r.code === 403) {
     if (okDenied) return null;
-    throw new Fail('Firebase no deja hacer eso. Revisa las reglas de la base de datos (Ronrón → Ajustes → Cuenta y pareja).');
+    throw new Fail('Firebase no deja hacer eso. Revisa las reglas de la base de datos (Atrio en el móvil → Ajustes → Cuenta y pareja).');
   }
   if (r.code === 404) throw new Fail('No encuentro la base de datos.');
   if (r.code < 200 || r.code > 299) throw new Fail(`Firebase respondió ${r.code}.`);
@@ -375,7 +375,7 @@ function avg(entries, f) {
 function edit(op) {
   return serial(async () => {
     const s = S();
-    if (!s.uid) throw new Fail('No has iniciado sesión en Ronrón.');
+    if (!s.uid) throw new Fail('No has iniciado sesión en tu cuenta de Atrio.');
     // Primero lo último de tus otros dispositivos, para editar sobre lo más reciente
     try { await pullOwn(false); } catch { /* sin conexión: se edita lo de aquí y se sube después */ }
     const d = L() || merge({}, {});
