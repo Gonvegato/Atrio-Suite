@@ -21,10 +21,13 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.content.MutableContextWrapper
+import org.json.JSONObject
 
 /**
  * Una guía abierta dentro de Atrio, en su propia ventana (con vistas de Android de siempre: la web se pinta
- * bien en cualquier móvil). Sale en Recientes como «Atrio · guía», así la tienes a mano mientras juegas en el PC.
+ * bien en cualquier móvil). Va en la misma tarea que Atrio y la web sigue viva al cerrarla o salir de la app:
+ * vuelves y está donde la dejaste. Si el móvil cerró la app del todo, se reabre en la última página que viste.
  */
 class WebActivity : Activity() {
     private lateinit var web: WebView
@@ -33,11 +36,55 @@ class WebActivity : Activity() {
     private lateinit var bar: ProgressBar
 
     companion object {
+        /**
+         * Webs abiertas que siguen vivas aunque cierres la ventana o salgas de la app: al volver está todo igual
+         * (la página, el scroll, lo que hubieras buscado). Las 4 últimas; la más vieja se libera.
+         */
+        private val alive = object : LinkedHashMap<String, WebView>(8, 0.75f, true) {
+            override fun removeEldestEntry(e: MutableMap.MutableEntry<String, WebView>): Boolean {
+                if (size <= 4) return false
+                try { e.value.destroy() } catch (x: Exception) { }
+                return true
+            }
+        }
+
         fun open(ctx: Context, g: Guide) {
-            ctx.startActivity(Intent(ctx, WebActivity::class.java).putExtra("url", g.url).putExtra("title", g.title)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK))
+            // En la misma tarea que Atrio: si sales un rato y vuelves a la app, la guía sigue ahí delante
+            val i = Intent(ctx, WebActivity::class.java).putExtra("url", g.url).putExtra("title", g.title)
+            if (ctx !is Activity) i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ctx.startActivity(i)
+        }
+
+        private fun prefs(ctx: Context) = ctx.getSharedPreferences("gamerate", Context.MODE_PRIVATE)
+
+        /** Dónde te quedaste en una guía (dirección inicial → última página y su título), si fue hace menos de 2 semanas. */
+        fun lastPage(ctx: Context, start: String): Pair<String, String>? = try {
+            val o = JSONObject(prefs(ctx).getString("guide_last", "{}")).optJSONObject(start)
+            if (o == null || System.currentTimeMillis() - o.optLong("at") > 14L * 24 * 3600 * 1000) null
+            else o.optString("u").takeIf { it.startsWith("http") }?.let { it to o.optString("t") }
+        } catch (e: Exception) { null }
+
+        fun forget(ctx: Context, start: String) {
+            val all = try { JSONObject(prefs(ctx).getString("guide_last", "{}")) } catch (e: Exception) { JSONObject() }
+            all.remove(start)
+            prefs(ctx).edit().putString("guide_last", all.toString()).apply()
+            alive.remove(start)?.let { try { it.destroy() } catch (e: Exception) { } }
+        }
+
+        private fun remember(ctx: Context, start: String, u: String, t: String) {
+            val all = try { JSONObject(prefs(ctx).getString("guide_last", "{}")) } catch (e: Exception) { JSONObject() }
+            all.put(start, JSONObject().put("u", u).put("t", t).put("at", System.currentTimeMillis()))
+            // Solo las 40 más recientes
+            if (all.length() > 40) {
+                val old = all.keys().asSequence().toList().sortedBy { all.optJSONObject(it)?.optLong("at") ?: 0 }
+                old.take(all.length() - 40).forEach { all.remove(it) }
+            }
+            prefs(ctx).edit().putString("guide_last", all.toString()).apply()
         }
     }
+
+    private lateinit var start: String
+    private var fresh = true
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
@@ -47,7 +94,7 @@ class WebActivity : Activity() {
         setTextColor(Color.parseColor("#EDEBE6"))
         textSize = 20f
         gravity = Gravity.CENTER
-        layoutParams = LinearLayout.LayoutParams(dp(46), dp(46))
+        layoutParams = LinearLayout.LayoutParams(dp(42), dp(46))
         isClickable = true
         isFocusable = true
         setOnClickListener { onClick() }
@@ -83,6 +130,7 @@ class WebActivity : Activity() {
         }
         texts.addView(titleView); texts.addView(hostView)
         top.addView(texts)
+        top.addView(button("⌂", "Inicio de la guía") { web.loadUrl(start) })
         top.addView(button("‹", "Atrás") { if (web.canGoBack()) web.goBack() })
         top.addView(button("⟳", "Recargar") { web.reload() })
         top.addView(button("⇪", "Compartir") {
@@ -99,13 +147,18 @@ class WebActivity : Activity() {
         }
         root.addView(bar)
 
-        web = WebView(this).apply {
+        start = url
+        val kept = alive[url]
+        fresh = kept == null
+        web = kept?.also { (it.parent as? ViewGroup)?.removeView(it); (it.context as? MutableContextWrapper)?.baseContext = this } ?: WebView(MutableContextWrapper(this)).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.loadWithOverviewMode = true
             settings.useWideViewPort = true
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
+        }
+        web.apply {
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     if (request.url.scheme == "http" || request.url.scheme == "https") return false
@@ -117,6 +170,7 @@ class WebActivity : Activity() {
                 override fun onPageFinished(view: WebView, u: String) {
                     hostView.text = host(u)
                     view.title?.takeIf { it.isNotBlank() }?.let { titleView.text = it }
+                    if (u.startsWith("http")) remember(view.context.applicationContext, start, u, view.title ?: "")
                 }
             }
             webChromeClient = object : WebChromeClient() {
@@ -130,25 +184,39 @@ class WebActivity : Activity() {
         }
         root.addView(web)
         setContentView(FrameLayout(this).apply { fitsSystemWindows = true; setBackgroundColor(ink); addView(root) })
-        setTaskDescription(android.app.ActivityManager.TaskDescription("Atrio · ${intent.getStringExtra("title") ?: "guía"}"))
-        hostView.text = host(url)
-        if (savedInstanceState != null) web.restoreState(savedInstanceState) else web.loadUrl(url)
+        hostView.text = host(web.url ?: url)
+        web.title?.takeIf { it.isNotBlank() && !fresh }?.let { titleView.text = it }
+        if (fresh) {
+            alive[url] = web
+            when {
+                savedInstanceState != null -> web.restoreState(savedInstanceState)
+                // Sigue donde lo dejaste (la app se cerró del todo, o el móvil liberó memoria)
+                else -> web.loadUrl(lastPage(this, url)?.first ?: url)
+            }
+        }
     }
 
     private fun host(u: String) = (Uri.parse(u).host ?: u).removePrefix("www.")
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        web.saveState(outState)
+        if (::web.isInitialized) web.saveState(outState)
     }
 
     @Deprecated("Atrás dentro de la web antes de cerrar")
     override fun onBackPressed() {
-        if (web.canGoBack()) web.goBack() else super.onBackPressed()
+        if (::web.isInitialized && web.canGoBack()) web.goBack() else super.onBackPressed()
     }
 
+    override fun onPause() { super.onPause(); if (::web.isInitialized) web.onPause() }
+    override fun onResume() { super.onResume(); if (::web.isInitialized) web.onResume() }
+
     override fun onDestroy() {
-        try { web.destroy() } catch (e: Exception) { }
+        // La web no se destruye: queda viva para la próxima vez (sin la ventana, con el contexto de la app)
+        if (!::web.isInitialized) { super.onDestroy(); return }
+        (web.parent as? ViewGroup)?.removeView(web)
+        (web.context as? MutableContextWrapper)?.baseContext = applicationContext
+        if (alive[start] !== web) try { web.destroy() } catch (e: Exception) { }
         super.onDestroy()
     }
 }

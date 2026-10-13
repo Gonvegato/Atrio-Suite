@@ -26,7 +26,7 @@
             </intent-filter>
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
-        <!-- Guías: una web dentro de Atrio, en su propia ventana (sale en Recientes) -->
+        <!-- Guías: una web dentro de Atrio (misma tarea: si sales y vuelves, sigue abierta) -->
         <activity
             android:name=".WebActivity"
             android:exported="false"

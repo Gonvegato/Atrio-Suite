@@ -244,6 +244,18 @@ must see "Example Domain" 20
 see "documentation examples" 30 || { cp "$OUT/ui.xml" "$OUT/ui_guia.xml"; shot 35b_guia_sin_texto 1; echo "   FALLO: la web no pinta su contenido" | tee -a "$LOG"; exit 1; }
 shot 35_guia_abierta 1
 echo "   la guía se abre dentro de Atrio" | tee -a "$LOG"
+# Sales un rato de la app (botón de inicio) y vuelves desde el icono: la guía sigue abierta
+adb shell input keyevent 3; sleep 4
+adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 5
+must see "documentation examples" 15
+shot 36_guia_al_volver 1; alive "guia al volver"
+echo "   al volver a la app la guía sigue ahí" | tee -a "$LOG"
+# Cerrada con ✕ y vuelta a abrir: instantánea, en la misma página
+tap "Cerrar"; sleep 2
+must see "Guías" 10
+tap "example.com"; sleep 3
+must see "documentation examples" 10
+echo "   cerrada y reabierta, sigue en su sitio" | tee -a "$LOG"
 adb shell input keyevent 4; sleep 2
 pkill -f lanzar-atrio || true
 

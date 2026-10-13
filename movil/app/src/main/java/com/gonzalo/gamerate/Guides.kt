@@ -107,7 +107,7 @@ private fun hostHue(host: String) = ((host.hashCode() and 0x7fffffff) % 360).toF
 /** Tarjeta grande de una guía: icono de la web, nombre y dominio, sobre un degradado propio. */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun GuideCard(g: Guide, onOpen: () -> Unit, onLong: () -> Unit) {
+private fun GuideCard(g: Guide, resume: String?, onOpen: () -> Unit, onLong: () -> Unit) {
     val hue = hostHue(g.host)
     val shape = RoundedCornerShape(22.dp)
     Box(
@@ -128,7 +128,7 @@ private fun GuideCard(g: Guide, onOpen: () -> Unit, onLong: () -> Unit) {
         )
         Column(Modifier.align(Alignment.BottomStart).padding(14.dp)) {
             Text(g.title, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(g.host, color = Color(0xB3FFFFFF), fontSize = 12.sp, maxLines = 1)
+            Text(if (resume != null) "Seguías en: $resume" else g.host, color = Color(0xB3FFFFFF), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -148,6 +148,16 @@ fun GuidesSection(id: Long, name: String, modifier: Modifier = Modifier) {
     var adding by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf<Guide?>(null) }
     var msg by remember { mutableStateOf("") }
+    // Al volver de una guía se actualiza «Seguías en…»
+    val life = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    DisposableEffect(life) {
+        val o = androidx.lifecycle.LifecycleEventObserver { _, e -> if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) tick++ }
+        life.lifecycle.addObserver(o)
+        onDispose { life.lifecycle.removeObserver(o) }
+    }
+    val resume = remember(list, tick) {
+        list.associate { g -> g.url to WebActivity.lastPage(ctx, g.url)?.let { (u, t) -> if (u.trimEnd('/') == g.url.trimEnd('/')) null else t.ifBlank { Uri.parse(u).lastPathSegment ?: u } } }
+    }
     Column(modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Rounded.Language, null, tint = Charcoal, modifier = Modifier.size(22.dp))
@@ -157,7 +167,7 @@ fun GuidesSection(id: Long, name: String, modifier: Modifier = Modifier) {
         }
         Spacer(Modifier.height(8.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(list, key = { it.url }) { g -> GuideCard(g, { Guides.opener?.invoke(g) }, { menu = g }) }
+            items(list, key = { it.url }) { g -> GuideCard(g, resume[g.url], { Guides.opener?.invoke(g) }, { menu = g }) }
             item {
                 Box(
                     Modifier.width(128.dp).height(128.dp).clip(RoundedCornerShape(22.dp)).border(1.dp, Line, RoundedCornerShape(22.dp))
@@ -212,7 +222,8 @@ fun GuidesSection(id: Long, name: String, modifier: Modifier = Modifier) {
             text = { Text(m.url, color = Muted, fontSize = 13.sp) },
             confirmButton = {
                 Column(horizontalAlignment = Alignment.End) {
-                    TextButton({ menu = null; Guides.opener?.invoke(m) }) { Text("Abrir aquí") }
+                    TextButton({ menu = null; Guides.opener?.invoke(m) }) { Text(if (resume[m.url] != null) "Seguir donde lo dejé" else "Abrir aquí") }
+                    if (resume[m.url] != null) TextButton({ menu = null; WebActivity.forget(ctx, m.url); Guides.opener?.invoke(m) }) { Text("Empezar desde el inicio") }
                     if (pc != null && Suite.target() != null) TextButton({
                         menu = null
                         scope.launch { val (_, r) = Suite.send("guide", JSONObject().put("key", pc.key).put("url", m.url)); msg = r }
