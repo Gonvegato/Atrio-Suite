@@ -3,6 +3,10 @@ on:
   push:
     paths: ['movil/**', 'escritorio/src/**', 'herramientas/**', '.github/workflows/emulador.yml']
   workflow_dispatch:
+    inputs:
+      api:
+        description: 'Versión de Android del emulador (API)'
+        default: '29'
 jobs:
   humo:
     runs-on: ubuntu-latest
@@ -38,12 +42,12 @@ jobs:
       - name: Emulador
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: ${{ inputs.api || '29' }}
           arch: x86_64
           target: default
           profile: pixel_4
           emulator-boot-timeout: 900
-          emulator-options: -no-window -gpu guest -no-snapshot -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           disk-size: 4096M
           script: bash herramientas/humo.sh
