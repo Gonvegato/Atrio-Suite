@@ -283,6 +283,9 @@ object Skin {
     var body by mutableStateOf("Atrio")
     var textScale by mutableStateOf(1f)
 
+    /** Pantalla de Estilo abierta (se pinta encima de toda la app). */
+    var open by mutableStateOf(false)
+
     /** Tonos que se ven ahora (según el modo claro u oscuro). */
     val tones: Tones get() = if (Mode.dark) palette.dark else palette.light
 

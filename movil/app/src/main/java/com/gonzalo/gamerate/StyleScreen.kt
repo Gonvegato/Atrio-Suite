@@ -34,8 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.drawable.toBitmap
 
 /** Iconos de la app: alias de la actividad principal (Manifest), uno activo a la vez. */
@@ -70,12 +68,11 @@ fun skinSummary(): String = Skin.currentStyle()?.name ?: "${Skin.palette.name} �
 /** Tarjeta de Ajustes → Apariencia que abre la pantalla de Estilo. */
 @Composable
 fun StyleEntry(themeMode: Int, onTheme: (Int) -> Unit) {
-    var open by remember { mutableStateOf(false) }
     val t = Skin.tones
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp))
             .background(Brush.linearGradient(listOf(Color(t.general).copy(alpha = 0.22f), Color(t.gameplay).copy(alpha = 0.18f), Color(t.gfx).copy(alpha = 0.14f))))
-            .border(1.dp, Line, RoundedCornerShape(20.dp)).clickable { open = true }.padding(16.dp),
+            .border(1.dp, Line, RoundedCornerShape(20.dp)).clickable { Skin.open = true }.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Rounded.Palette, null, tint = Charcoal, modifier = Modifier.size(30.dp))
@@ -91,7 +88,6 @@ fun StyleEntry(themeMode: Int, onTheme: (Int) -> Unit) {
             }
         }
     }
-    if (open) StyleScreen(themeMode, onTheme) { open = false }
 }
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -100,24 +96,13 @@ fun StyleScreen(themeMode: Int, onTheme: (Int) -> Unit, onClose: () -> Unit) {
     val ctx = LocalContext.current
     var tab by remember { mutableStateOf(StyleTab.Mixes) }
     fun save() = Skin.save(ctx)
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
-        // La ventana del diálogo a pantalla completa, también por debajo de las barras del sistema
-        val view = androidx.compose.ui.platform.LocalView.current
-        val bg = Paper
-        SideEffect {
-            (view.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window?.let { w ->
-                w.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT)
-                w.setDimAmount(0f)
-                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(w, false)
-                w.statusBarColor = android.graphics.Color.TRANSPARENT
-                w.navigationBarColor = bg.toArgb()
-                androidx.core.view.WindowCompat.getInsetsController(w, view).let { c ->
-                    c.isAppearanceLightStatusBars = !Skin.tones.darkBg
-                    c.isAppearanceLightNavigationBars = !Skin.tones.darkBg
-                }
-            }
-        }
-        Column(Modifier.fillMaxSize().background(Paper).statusBarsPadding().navigationBarsPadding()) {
+    // Capa a pantalla completa por encima de toda la app (la pone MainActivity): atrás la cierra
+    androidx.activity.compose.BackHandler { onClose() }
+    run {
+        // Los toques no pasan a la pantalla de debajo
+        Column(Modifier.fillMaxSize().background(Paper)
+            .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) {}
+            .statusBarsPadding().navigationBarsPadding()) {
             Row(Modifier.padding(start = 8.dp, end = 16.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 BackButton(onClose)
                 Spacer(Modifier.width(8.dp))
