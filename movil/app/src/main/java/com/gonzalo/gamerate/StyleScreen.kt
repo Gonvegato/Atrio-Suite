@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -93,12 +94,29 @@ fun StyleEntry(themeMode: Int, onTheme: (Int) -> Unit) {
     if (open) StyleScreen(themeMode, onTheme) { open = false }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun StyleScreen(themeMode: Int, onTheme: (Int) -> Unit, onClose: () -> Unit) {
     val ctx = LocalContext.current
     var tab by remember { mutableStateOf(StyleTab.Mixes) }
     fun save() = Skin.save(ctx)
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        // La ventana del diálogo a pantalla completa, también por debajo de las barras del sistema
+        val view = androidx.compose.ui.platform.LocalView.current
+        val bg = Paper
+        SideEffect {
+            (view.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window?.let { w ->
+                w.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT)
+                w.setDimAmount(0f)
+                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(w, false)
+                w.statusBarColor = android.graphics.Color.TRANSPARENT
+                w.navigationBarColor = bg.toArgb()
+                androidx.core.view.WindowCompat.getInsetsController(w, view).let { c ->
+                    c.isAppearanceLightStatusBars = !Skin.tones.darkBg
+                    c.isAppearanceLightNavigationBars = !Skin.tones.darkBg
+                }
+            }
+        }
         Column(Modifier.fillMaxSize().background(Paper).statusBarsPadding().navigationBarsPadding()) {
             Row(Modifier.padding(start = 8.dp, end = 16.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 BackButton(onClose)
@@ -112,7 +130,7 @@ fun StyleScreen(themeMode: Int, onTheme: (Int) -> Unit, onClose: () -> Unit) {
             Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 ThemeNames.forEachIndexed { i, n -> SoftChip(n, themeMode == i) { onTheme(i) } }
             }
-            Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 StyleTab.entries.forEach { t -> SoftChip(t.title, tab == t) { tab = t } }
             }
             Box(Modifier.weight(1f)) {
