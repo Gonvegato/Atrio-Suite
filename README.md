@@ -73,6 +73,32 @@ Las dos usan la misma cuenta de Atrio (Firebase) y se hablan en **tiempo real** 
 45. Al tocar una guía se abre **dentro de la app**, a pantalla completa, para tenerla en el móvil mientras juegas
     en el PC (atrás, recargar, compartir, abrir en el navegador). Mantener pulsada: abrirla en el PC o guardarla.
 
+46. Las guías **siguen abiertas** aunque salgas de la app o cierres la ventana: vuelves y están donde las dejaste.
+    Si el móvil cerró la app del todo, se reabren en la última página vista («Seguías en…»; o «Empezar desde el inicio»).
+
+**Streaming: jugar en el móvil a los juegos del PC** (Sunshine en el PC + Moonlight en el móvil)
+47. Cada juego del PC tiene dos botones grandes: **Jugar en el PC** y **Streaming**. Streaming arranca Sunshine,
+    lanza el juego en el PC y abre Moonlight directamente en ese PC (sin elegir nada en Moonlight).
+48. En la tarjeta en directo, **Streaming** para seguir en el móvil la partida que ya está en marcha.
+49. Emparejar sin ir al PC: Moonlight enseña un PIN, lo escribes en Atrio del móvil y Atrio se lo pasa a Sunshine.
+50. Fuera de casa: Atrio detecta **Tailscale** en el PC y te da su dirección para añadirla en Moonlight.
+51. **Encender el PC** desde el móvil (Wake-on-LAN, en la wifi de casa).
+52. En Atrio del PC → Ajustes → Streaming: estado de Sunshine, instalarlo (AUR o Flatpak), arrancarlo, tu usuario
+    de Sunshine (para el PIN), puertos del cortafuegos y qué aplicación de Sunshine abre Moonlight («Desktop»).
+
+**Estilo** (móvil: Ajustes → Apariencia → Estilo · PC: Ajustes → Apariencia)
+53. **30 combinaciones** listas (Arcade, Cyberpunk, Revista, Fantasía, Terminal, Dracula, Tokyo Night…).
+54. **28 paletas**, cada una con versión clara y oscura; las de editores (Dracula, Nord, Catppuccin, Gruvbox,
+    Solarized, Tokyo Night, Rosé Pine, Everforest) con sus colores oficiales.
+55. **88 letras** en el móvil (48 para títulos y 40 para el texto, de Google Fonts) y tamaño del texto.
+56. **12 iconos** de la app para elegir (y el icono nuevo de Atrio, con luz en la puerta, también en el PC).
+57. En el PC, las mismas paletas como **37 esquemas** y **13 juegos de letras** nuevos (van dentro de la app,
+    funcionan sin internet). Se generan de las paletas del móvil (`herramientas/gen-estilos.py`).
+
+**Arreglos**
+58. Apagar, reiniciar o suspender desde el móvil prueba varias vías (systemctl, logind, Plasma, GNOME); si algo lo
+    impide, el móvil te dice qué (por ejemplo, el programa que lo bloquea). La orden ya no puede repetirse al encender.
+
 **Control y privacidad** (Atrio en el PC → Ajustes → Móvil)
 33. Permitir o no capturas, lanzar juegos y energía desde el móvil.
 34. Formato (PNG/JPG), qué pantalla capturar y si se envían al móvil o solo se guardan en el PC.
@@ -100,7 +126,8 @@ herramientas/  Firebase de mentira (con streaming), pruebas de punta a punta y p
 ## Pruebas
 
 - `node herramientas/prueba-suite.js`: Firebase de mentira + Atrio de verdad (Xvfb) + un móvil simulado:
-  directo, órdenes, captura a resolución real bajada byte a byte, lanzar juego, parte jugada y mezcla al instante.
+  directo, órdenes, captura a resolución real bajada byte a byte, lanzar juego, parte jugada, mezcla al instante,
+  streaming con un Sunshine de mentira (`herramientas/fakesunshine.js`: detectar, preparar, PIN bueno y malo) y apagar.
 - `cd movil && gradle testDebugUnitTest`: streaming y mezcla del móvil contra el Firebase de mentira.
 - `node herramientas/capturas-atrio.js`: capturas de la interfaz de Atrio con el móvil conectado.
 - Actions → «Prueba en emulador»: Atrio en un emulador Android con Atrio de verdad al lado, de principio a fin.
