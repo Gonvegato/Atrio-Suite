@@ -53,8 +53,9 @@ async function j(method, url, body) {
     customGames: [
       { id: 'prueba', name: 'Juego de Prueba', exec: '/bin/true', runner: 'native' },
       { id: 'otro', name: 'Otro juego', exec: '/bin/true', runner: 'native' },
+      { id: 'deadlock', name: 'Deadlock', exec: '/bin/true', runner: 'native' },
     ],
-    overrides: { 'custom:prueba': { sgdbId: 4242 } },
+    overrides: { 'custom:prueba': { sgdbId: 4242 }, 'custom:deadlock': { online: true } },
     behavior: { autostart: 'off', fullscreen: false, onLaunch: 'none' },
   }));
   const plan = path.join(HOME, 'plan.json');
@@ -69,6 +70,11 @@ async function j(method, url, body) {
     { click: '[data-rr="p:4242"]', wait: 1800, name: '06-ficha-ronron' },
     { close: true, wait: 500 },
     { open: 'settings', section: 'suite', wait: 1500, name: '07-ajustes-suite' },
+    { close: true, wait: 500 },
+    { page: 'custom:deadlock', wait: 1500 },
+    { click: '.gp-web-btn', wait: 2500, name: '08-guias-inicio' },
+    { click: '.web-card', wait: 9000, name: '09-guias-web', screen: true },
+    { click: '.web-save', wait: 1500, name: '10-guias-guardada', screen: true },
   ]));
   fs.mkdirSync(OUT, { recursive: true });
   const env = { ...process.env, ATRIO_HOME: HOME, ATRIO_RONRON_DB: FB, ATRIO_RONRON_AUTH: FB, ATRIO_NO_SANDBOX: '1', ATRIO_SHOTS: OUT, ATRIO_SHOT_PLAN: plan, ATRIO_SIZE: '1720x968' };

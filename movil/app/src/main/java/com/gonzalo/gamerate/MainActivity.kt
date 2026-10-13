@@ -65,6 +65,8 @@ class MainActivity : ComponentActivity() {
     private var openGo by mutableStateOf("")
     /** Aviso de «partida terminada en el PC»: valorar esa parte ("idDelJuego:idDeLaParte"). */
     private var openRate by mutableStateOf("")
+    private var shareUrl by mutableStateOf("")
+    private var shareTitle by mutableStateOf("")
 
     private fun read(i: Intent?) {
         // Al volver desde Recientes, Android repite la intent original: no hay que repetir el atajo.
@@ -73,6 +75,12 @@ class MainActivity : ComponentActivity() {
         openPartner = i?.getBooleanExtra("partner", false) ?: false
         openGo = i?.getStringExtra("go") ?: ""
         openRate = i?.getStringExtra("rate") ?: ""
+        // Compartir → Atrio desde el navegador: una web para guardarla como guía de un juego del PC
+        if (i?.action == Intent.ACTION_SEND) {
+            val txt = i.getStringExtra(Intent.EXTRA_TEXT) ?: ""
+            val url = Regex("https?://\\S+").find(txt)?.value ?: ""
+            if (url.isNotEmpty()) { shareUrl = url; shareTitle = (i.getStringExtra(Intent.EXTRA_SUBJECT) ?: txt.replace(url, "")).trim() }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -158,7 +166,7 @@ class MainActivity : ComponentActivity() {
             }
             Box(Modifier.fillMaxSize()) {
                 MaterialTheme(colorScheme = appColors(), typography = AppTypography) {
-                    App(store, openId, openPartner, openGo, openRate) { openId = 0L; openPartner = false; openGo = ""; openRate = "" }
+                    App(store, openId, openPartner, openGo, openRate, shareUrl, shareTitle, { shareUrl = "" }) { openId = 0L; openPartner = false; openGo = ""; openRate = "" }
                 }
                 val img = overlay
                 if (img != null) {

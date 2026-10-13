@@ -9,6 +9,7 @@ const art = require('./art');
 const meta = require('./meta');
 const ronron = require('./ronron');
 const suite = require('./suite');
+const web = require('./web');
 const os = require('os');
 const { launch } = require('./launcher');
 const { createTracker } = require('./playlog');
@@ -222,6 +223,9 @@ function publicGame(g) {
     steamPlaytime: g.steamPlaytime || 0,
     steamAppId: g.steamAppId || null,
     meta: meta.get(g),
+    // Webs guardadas para este juego (guías, builds…) y si se trata como juego online
+    links: Array.isArray(ov.links) ? ov.links : [],
+    online: ov.online !== undefined ? !!ov.online : !!(meta.get(g) && meta.get(g).online),
   };
 }
 
@@ -371,6 +375,7 @@ function suiteLibrary() {
       sg: Number(sgdbOf(g)) || 0, fav: !!(cfg.overrides[g.key] || {}).favorite,
       lp: Math.max(st.lastPlayed || 0, g.lastPlayedSource || 0), src: g.source,
       min: Math.round(Math.max((mins.get(g.key) || 0) / 60000, g.steamPlaytime || 0)),
+      links: Array.isArray((cfg.overrides[g.key] || {}).links) ? cfg.overrides[g.key].links : [],
     };
   });
 }
@@ -404,6 +409,14 @@ function setupSuiteIpc() {
   });
   ipcMain.handle('suite:shotShow', (_e, id) => { const f = suite.shotFile(id); if (f) shell.showItemInFolder(f); return !!f; });
   ipcMain.handle('suite:methods', () => require('./capture').methods());
+  // Webs dentro de la página del juego
+  ipcMain.handle('web:open', (_e, url, bounds) => web.open(url, bounds));
+  ipcMain.handle('web:bounds', (_e, bounds) => { web.setBounds(bounds); return true; });
+  ipcMain.handle('web:hide', () => web.hide());
+  ipcMain.handle('web:show', (_e, bounds) => web.show(bounds));
+  ipcMain.handle('web:close', () => web.close());
+  ipcMain.handle('web:nav', (_e, action) => web.nav(action));
+  ipcMain.handle('web:state', () => web.state());
 }
 
 // ---------- Lanzar y energía (desde la interfaz o desde el móvil) ----------
@@ -681,6 +694,7 @@ function createWindow() {
     },
   });
   win.setMenuBarVisibility(false);
+  web.attach(win, send);
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   // La pantalla completa se aplica después de mostrar la ventana: crearla ya a pantalla
   // completa da problemas en algunos compositores Wayland
@@ -758,6 +772,10 @@ async function runShots() {
     } catch (e) { console.log('error', step.name, e.message); }
     await wait(step.wait || 900);
     if (step.name) {
+      // screen: toda la pantalla (incluye las webs de Guías, que van en una capa nativa aparte)
+      if (step.screen) {
+        try { require('child_process').execFileSync('import', ['-window', 'root', path.join(out, `${step.name}.png`)]); continue; } catch { /* sin ImageMagick */ }
+      }
       const img = await wc.capturePage();
       fs.writeFileSync(path.join(out, `${step.name}.png`), img.toPNG());
     }
@@ -858,6 +876,21 @@ app.whenReady().then(async () => {
       return Math.round(ms / 60000);
     }, launch: launchGame, power: doPower, rescan,
     focus: () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } },
+    // Una web adjuntada desde el móvil a un juego de esta biblioteca
+    addLink: (key, url, name) => {
+      if (!library.has(key)) throw new Error('Ese juego no está en la biblioteca de este PC');
+      if (!web.okUrl(url)) throw new Error('La dirección tiene que empezar por http:// o https://');
+      const cfg = config.get();
+      const ov = { ...(cfg.overrides[key] || {}) };
+      const links = (Array.isArray(ov.links) ? ov.links : []).filter((l) => l.u !== url);
+      links.push({ u: url, n: String(name || '').slice(0, 60) || new URL(url).hostname.replace(/^www\./, '') });
+      ov.links = links.slice(-20);
+      config.save({ ...cfg, overrides: { ...cfg.overrides, [key]: ov } });
+      const g = library.get(key);
+      send('art', publicGame(g));
+      suite.libChanged();
+      return named(g).name;
+    },
   }, ronron);
   // Si el equipo se suspende por otro lado (botón, tapa, inactividad), tampoco cuenta el rato dormido
   try { powerMonitor.on('suspend', () => { log('suspendido'); if (tracker) tracker.pause(); }); } catch { /* */ }

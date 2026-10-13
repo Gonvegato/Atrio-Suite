@@ -8,7 +8,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-private const val UA = "Atrio/4.2 (app personal; Android)"
+private const val UA = "Atrio/4.3 (app personal; Android)"
 
 private fun enc(s: String) = URLEncoder.encode(s.trim(), "UTF-8")
 

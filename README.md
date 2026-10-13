@@ -56,6 +56,19 @@ Las dos usan la misma cuenta de Atrio (Firebase) y se hablan en **tiempo real** 
 31. Lista de dispositivos de la cuenta y cuándo se vieron por última vez.
 32. Si el juego que se juega en el PC no tiene ficha, al apuntar se añade a «Jugando» (o vuelve, si lo rejuegas).
 
+**Guías dentro de la página del juego** (juegos online: Deadlock, LoL, Dota 2…)
+37. En los juegos online (se detectan solos con los datos de Steam: multijugador sin modo de un jugador, o MMO;
+    también se puede marcar a mano en Opciones) la página del juego tiene un botón **Guías**.
+38. La web se abre **dentro de la propia página del juego**, a la derecha, sin salir de Atrio (también las webs
+    que no se dejan incrustar). Sesión propia: si inicias sesión en una web, sigue iniciada.
+39. Varias webs por juego, como pestañas; «Guardar» la deja fija, clic derecho la quita.
+40. Sugerencias comprobadas para Deadlock (Deadlock Wiki, Statlocker, Mobalytics, Deadlock Labs), League of
+    Legends (OP.GG, U.GG, Mobalytics) y Dota 2 (Dotabuff), y buscador de guías para cualquier juego.
+41. Desde el móvil: ver las guías de cada juego del PC, abrirlas en el móvil o **en el PC**, y adjuntar una web.
+42. **Compartir → Atrio** desde el navegador del móvil: elige el juego y la web aparece en su página del PC
+    (le llega aunque el PC esté apagado en ese momento).
+43. En la tarjeta en directo, botón **Guías** del juego que se está jugando.
+
 **Control y privacidad** (Atrio en el PC → Ajustes → Móvil)
 33. Permitir o no capturas, lanzar juegos y energía desde el móvil.
 34. Formato (PNG/JPG), qué pantalla capturar y si se envían al móvil o solo se guardan en el PC.

@@ -130,6 +130,21 @@ async function until(fn, ms, every = 500) {
     const idle = await until(async () => { const v = await db('GET', `/users/${uid}/suite/live/atrio-prueba`); return v && !v.game ? v : null; }, 20000);
     ok(!!idle, 'El directo vuelve a «sin jugar»');
 
+    console.log('5b. Guías: una web adjuntada desde el móvil llega al juego del PC');
+    await db('POST', `/users/${uid}/suite/inbox/atrio-prueba`, { op: 'link', key: 'custom:prueba', u: 'https://deadlock.wiki/Heroes', n: 'Wiki', t: { '.sv': 'timestamp' }, by: 'Móvil de prueba' });
+    const libw = await until(async () => {
+      const v = await db('GET', `/users/${uid}/suite/lib/atrio-prueba`);
+      const g = v && v.games && v.games.find((x) => x.k === 'custom:prueba');
+      return g && g.w && g.w.some((l) => l.u === 'https://deadlock.wiki/Heroes') ? g : null;
+    }, 20000);
+    ok(!!libw, 'La web queda guardada en el juego del PC y el móvil la ve en su biblioteca');
+    const inboxLeft = await db('GET', `/users/${uid}/suite/inbox/atrio-prueba`);
+    ok(!inboxLeft, 'El buzón se vacía al recogerla');
+    const cfgNow = JSON.parse(fs.readFileSync(path.join(HOME, '.config', 'atrio', 'config.json'), 'utf8'));
+    ok(((cfgNow.overrides['custom:prueba'] || {}).links || []).length === 1, 'Guardada en la configuración de Atrio');
+    const gd = await send('guide', { key: 'custom:prueba', url: 'https://deadlock.wiki/Heroes' });
+    ok(gd && gd.ok, `Abrir la guía en el PC desde el móvil: ${gd && gd.msg}`);
+
     console.log('6. Un cambio del móvil llega al PC al momento');
     const d2 = { ...data, plays: [{ ...play, memos: [{ t: Date.now(), x: 'Apunte desde el móvil' }], updated: Date.now() + 1 }] };
     await db('PUT', `/users/${uid}/dev/mtest`, { name: 'gonzalo', user: 'gonzalo', device: 'android', updated: { '.sv': 'timestamp' }, data: JSON.stringify(d2) });

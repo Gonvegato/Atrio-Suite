@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Computer
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.EditNote
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PowerSettingsNew
@@ -107,7 +108,9 @@ fun RemoteButton(icon: androidx.compose.ui.graphics.vector.ImageVector, text: St
 @Composable
 fun LiveCard(
     plays: List<Play>, onShot: () -> Unit, shooting: Boolean, onMemo: (LiveGame) -> Unit,
-    onOpenPlay: (Play) -> Unit, onRemote: () -> Unit
+    onOpenPlay: (Play) -> Unit, onRemote: () -> Unit,
+    /** Guías del juego en marcha (si tiene webs guardadas en el PC). */
+    onGuides: (PcGame) -> Unit = {}
 ) {
     val pc = Suite.target()
     if (pc == null) {
@@ -186,6 +189,8 @@ fun LiveCard(
                 RemoteButton(Icons.Rounded.PhotoCamera, "Captura", light = true, busy = shooting) { onShot() }
                 RemoteButton(Icons.Rounded.EditNote, "Apunte", light = true) { onMemo(g) }
                 if (play != null) RemoteButton(Icons.Rounded.Star, "Ficha", light = true) { onOpenPlay(play) }
+                val pg = Suite.pcGame(g.key)
+                if (pg != null && pg.links.isNotEmpty()) RemoteButton(Icons.Rounded.Language, "Guías", light = true) { onGuides(pg) }
                 RemoteButton(Icons.Rounded.SportsEsports, "Mando", light = true) { onRemote() }
             }
         }
@@ -528,6 +533,7 @@ fun SuiteScreen(
     var query by remember { mutableStateOf("") }
     var busyKey by remember { mutableStateOf<String?>(null) }
     var pcPick by remember { mutableStateOf(store.suitePc) }
+    var sheet by remember { mutableStateOf<PcGame?>(null) }
     val pc = Suite.target()
     fun act(op: String, args: JSONObject = JSONObject(), done: (Boolean, String) -> Unit = { _, m -> say(m) }) {
         scope.launch { val (ok, m) = Suite.send(op, args, pc?.dev); done(ok, m) }
@@ -569,7 +575,7 @@ fun SuiteScreen(
                     if (pc == null) {
                         EmptySuite()
                     } else {
-                        LiveCard(plays, { shot() }, shooting, onMemo, onOpenPlay) { }
+                        LiveCard(plays, { shot() }, shooting, onMemo, onOpenPlay, onRemote = { }, onGuides = { sheet = it })
                         Spacer(Modifier.height(18.dp))
                         Text("Las capturas llegan a su resolución original (PNG, sin pérdida) y se guardan en Imágenes/Atrio y, en el PC, en Imágenes/Atrio.",
                             color = Muted, fontSize = 13.sp)
@@ -603,11 +609,7 @@ fun SuiteScreen(
                         LazyVerticalGrid(GridCells.Adaptive(104.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(14.dp),
                             contentPadding = PaddingValues(bottom = 24.dp)) {
                             items(lib, key = { it.key }) { g ->
-                                PcGameTile(g, busyKey == g.key) {
-                                    if (pc == null) { say("El PC está desconectado"); return@PcGameTile }
-                                    busyKey = g.key
-                                    act("launch", JSONObject().put("key", g.key)) { _, m -> say(m); busyKey = null }
-                                }
+                                PcGameTile(g, busyKey == g.key) { sheet = g }
                             }
                         }
                     }
@@ -673,6 +675,13 @@ fun SuiteScreen(
             }
         }
     }
+    val sh = sheet
+    if (sh != null) {
+        PcGameSheet(sh, pc != null, onPlay = {
+            busyKey = sh.key
+            act("launch", JSONObject().put("key", sh.key)) { _, m -> say(m); busyKey = null }
+        }, onDismiss = { sheet = null }, say = say)
+    }
     val c = confirm
     if (c != null) {
         AlertDialog(
@@ -707,9 +716,110 @@ private fun PcGameTile(g: PcGame, busy: Boolean, modifier: Modifier = Modifier, 
                 CircularProgressIndicator(Modifier.size(26.dp), color = Color.White, strokeWidth = 2.dp)
             }
             if (g.fav) Icon(Icons.Rounded.Star, null, tint = Gold, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(16.dp))
+            if (g.links.isNotEmpty()) Text("${g.links.size} guía" + if (g.links.size > 1) "s" else "", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.align(Alignment.BottomStart).padding(5.dp).background(Color(0x99000000), RoundedCornerShape(50)).padding(horizontal = 6.dp, vertical = 2.dp))
         }
         Spacer(Modifier.height(5.dp))
         Text(g.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 15.sp)
         if (g.minutes > 0) Text(hoursText(g.minutes), fontSize = 11.sp, color = Muted)
     }
+}
+
+/** Abre una web en el navegador del móvil. */
+fun openUrl(ctx: Context, url: String) {
+    try { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (e: Exception) { }
+}
+
+/**
+ * Un juego de la biblioteca del PC: jugarlo allí, sus guías (abrirlas aquí o en la página del juego en el PC)
+ * y adjuntarle una web nueva.
+ */
+@Composable
+fun PcGameSheet(g: PcGame, pcOnline: Boolean, onPlay: () -> Unit, onDismiss: () -> Unit, say: (String) -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var adding by remember { mutableStateOf(false) }
+    var url by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(g.name, fontFamily = Display) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                if (!adding) {
+                    Overline("Guías y webs")
+                    Spacer(Modifier.height(6.dp))
+                    if (g.links.isEmpty()) Text("Aún no tiene ninguna. Añade una aquí, compártela desde el navegador (Compartir → Atrio) o guárdala en el PC desde Guías.", color = Muted, fontSize = 13.sp)
+                    g.links.forEach { (n, u) ->
+                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { openUrl(ctx, u) }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(n.ifBlank { Uri.parse(u).host ?: u }, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(Uri.parse(u).host ?: u, color = Muted, fontSize = 12.sp, maxLines = 1)
+                            }
+                            if (pcOnline) TextButton({
+                                scope.launch { val (_, m) = Suite.send("guide", JSONObject().put("key", g.key).put("url", u)); say(m) }
+                            }) { Text("En el PC") }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    TextButton({ adding = true }) { Icon(Icons.Rounded.Add, null); Spacer(Modifier.width(6.dp)); Text("Añadir una web") }
+                } else {
+                    OutlinedTextField(url, { url = it.trim() }, label = { Text("Dirección (https://…)") }, singleLine = true, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(name, { name = it }, label = { Text("Nombre (opcional)") }, singleLine = true, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+                }
+            }
+        },
+        confirmButton = {
+            if (adding) TextButton({
+                val u = if (url.startsWith("http")) url else "https://$url"
+                if (url.isBlank()) return@TextButton
+                scope.launch { val (_, m) = Suite.addLink(g.key, u, name.trim()); say(m); onDismiss() }
+            }) { Text("Guardar") }
+            else if (pcOnline) TextButton({ onPlay(); onDismiss() }) { Text("Jugar en el PC") }
+        },
+        dismissButton = { TextButton({ if (adding) adding = false else onDismiss() }) { Text(if (adding) "Atrás" else "Cerrar") } },
+        shape = RoundedCornerShape(24.dp)
+    )
+}
+
+/** Una web compartida desde otra app (Compartir → Atrio): a qué juego del PC se adjunta. */
+@Composable
+fun ShareToGameDialog(url: String, title: String, onDismiss: () -> Unit, say: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var q by remember { mutableStateOf("") }
+    val all = Suite.libs.values.flatten().distinctBy { it.key }
+    val list = all.filter { q.isBlank() || normName(it.name).contains(normName(q)) }
+        .sortedWith(compareByDescending<PcGame> { it.links.isNotEmpty() }.thenByDescending { it.lastPlayed })
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Guardar como guía", fontFamily = Display) },
+        text = {
+            Column {
+                Text(title.ifBlank { Uri.parse(url).host ?: url }, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(Uri.parse(url).host ?: url, color = Muted, fontSize = 12.sp)
+                Spacer(Modifier.height(12.dp))
+                if (all.isEmpty()) Text("No veo la biblioteca de ningún PC: abre Atrio en el PC con tu cuenta y vuelve a compartirla.", color = Muted, fontSize = 13.sp)
+                else {
+                    SearchPill(q, "¿De qué juego?") { q = it }
+                    Spacer(Modifier.height(8.dp))
+                    Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
+                        list.take(60).forEach { g ->
+                            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable {
+                                scope.launch { val (_, m) = Suite.addLink(g.key, url, title.take(60)); say("${g.name}: $m"); onDismiss() }
+                            }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                MiniCover(g.cover, 30.dp)
+                                Spacer(Modifier.width(10.dp))
+                                Text(g.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                if (g.links.isNotEmpty()) Text("${g.links.size}", color = Muted, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onDismiss) { Text("Cancelar") } },
+        shape = RoundedCornerShape(24.dp)
+    )
 }

@@ -43,9 +43,16 @@ contextBridge.exposeInMainWorld('atrio', {
   suiteShotDelete: (id) => invoke('suite:shotDelete', id),
   suiteShotShow: (id) => invoke('suite:shotShow', id),
   suiteMethods: () => invoke('suite:methods'),
+  webOpen: (url, bounds) => invoke('web:open', url, bounds),
+  webBounds: (bounds) => invoke('web:bounds', bounds),
+  webHide: () => invoke('web:hide'),
+  webShow: (bounds) => invoke('web:show', bounds),
+  webClose: () => invoke('web:close'),
+  webNav: (action) => invoke('web:nav', action),
+  webState: () => invoke('web:state'),
   on: (channel, cb) => {
     const allowed = ['art', 'art-idle', 'library', 'focus', 'game-ended', 'play', 'winfocus', 'notice', 'ronron',
-      'suite', 'shot-start', 'shot-taken', 'seg', 'remote'];
+      'suite', 'shot-start', 'shot-taken', 'seg', 'remote', 'web', 'web-key', 'web-error'];
     if (!allowed.includes(channel)) return;
     ipcRenderer.on(channel, (_e, payload) => cb(payload));
   },

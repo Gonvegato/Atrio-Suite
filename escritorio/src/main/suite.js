@@ -95,6 +95,7 @@ async function pushLib() {
     if (g.lp) o.lp = g.lp;
     if (g.src) o.s = g.src;
     if (g.min) o.m = g.min;
+    if (g.links && g.links.length) o.w = g.links;
     return o;
   });
   const txt = JSON.stringify(games);
@@ -135,11 +136,33 @@ const HANDLERS = {
   async page(a) { ctx.focus(); ctx.send('remote', { op: 'page', key: a && a.key }); return { ok: true, msg: 'Abierto en Atrio' }; },
   async toast(a, by) { ctx.send('notice', `${by || 'Móvil'}: ${String((a && a.text) || '').slice(0, 200)}`); return { ok: true, msg: 'Enseñado en la pantalla' }; },
   async rescan() { await ctx.rescan(); return { ok: true, msg: 'Biblioteca actualizada' }; },
+  // Abrir en el PC la página del juego con una de sus webs
+  async guide(a) {
+    ctx.focus();
+    ctx.send('remote', { op: 'guide', key: a && a.key, url: a && a.url });
+    return { ok: true, msg: 'Abierta en el PC' };
+  },
   async ping() { return { ok: true, msg: `Atrio ${ctx.version()} en ${os.hostname()}` }; },
 };
 
 async function handleCommands() {
   const mine = ((tree.cmd || {})[me()]) || {};
+  // Webs adjuntadas desde el móvil (buzón: llegan aunque el PC estuviera apagado al mandarlas)
+  for (const [id, it] of Object.entries(((tree.inbox || {})[me()]) || {})) {
+    if (!it || busy.has(`in:${id}`) || done.has(`in:${id}`)) continue;
+    busy.add(`in:${id}`);
+    (async () => {
+      try {
+        if (it.op === 'link') {
+          const name = ctx.addLink(it.key, it.u, it.n);
+          ctx.send('notice', `${it.by || 'Móvil'}: web añadida a ${name}`);
+        }
+      } catch (e) { log('buzón', e.message); ctx.send('notice', `No se ha podido añadir la web: ${e.message}`); }
+      try { await del(`/suite/inbox/${me()}/${id}`); } catch { /* */ }
+      busy.delete(`in:${id}`);
+      done.add(`in:${id}`);
+    })();
+  }
   for (const [id, c] of Object.entries(mine)) {
     if (!c || c.res || busy.has(id) || done.has(id)) continue;
     const t = Number(c.t) || 0;

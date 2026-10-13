@@ -190,7 +190,9 @@ adb shell input keyevent 4; sleep 2
 step "Suite: lanzar un juego del PC desde el móvil"
 tap "Mando"; sleep 2; shot 27_mando 1; alive "mando"
 tap "Biblioteca"; sleep 2; shot 28_biblioteca_pc 1
-tap "Juego de Prueba"; sleep 4
+tap "Juego de Prueba"; sleep 2
+shot 28b_ficha_juego_pc 1
+tap "Jugar en el PC"; sleep 4
 adb shell input keyevent 4; sleep 2
 top
 must see "EN DIRECTO" 30
@@ -218,6 +220,14 @@ shot 32_valorar_partida 1
 seek "Guardar valoración"; tap "Guardar valoración"; sleep 6; alive "valorar"
 must $SIM has gonzalo secreto1 '"seg":"a'
 echo "   la partida tiene su valoración" | tee -a "$LOG"
+step "Guías: compartir una web desde el navegador del móvil a un juego del PC"
+adb shell am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "https://deadlock.wiki/Heroes" -n "$PKG/.MainActivity" >/dev/null
+sleep 3
+must see "Guardar como guía" 10
+shot 33_compartir_guia 1
+tap "Juego de Prueba"; sleep 6; alive "compartir"
+must $SIM at gonzalo secreto1 suite/lib 'deadlock.wiki'
+echo "   la web está en el juego del PC" | tee -a "$LOG"
 pkill -f lanzar-atrio || true
 
 step "OK: la app no se ha cerrado en ningún paso"

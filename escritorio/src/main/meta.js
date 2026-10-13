@@ -82,6 +82,12 @@ async function fetchDetails(appid) {
     release: d.release_date && d.release_date.date ? String(d.release_date.date) : null,
     comingSoon: !!(d.release_date && d.release_date.coming_soon),
     genres: Array.isArray(d.genres) ? d.genres.map((g) => g.description).filter(Boolean).slice(0, 4) : [],
+    // Juego online: multijugador sin modo de un jugador (Deadlock, Dota 2, CS2…) o MMO (género 29 de Steam)
+    online: (() => {
+      const cats = new Set((Array.isArray(d.categories) ? d.categories : []).map((c) => Number(c.id)));
+      const mmo = (Array.isArray(d.genres) ? d.genres : []).some((g) => Number(g.id) === 29);
+      return mmo || (cats.has(1) && !cats.has(2));
+    })(),
     description: strip(d.short_description).slice(0, 400) || null,
     metacritic: d.metacritic && d.metacritic.score ? Number(d.metacritic.score) : null,
     controller: d.controller_support || null,

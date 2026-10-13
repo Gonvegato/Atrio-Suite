@@ -148,6 +148,10 @@
   });
   A.api.on('remote', (r) => {
     if (r.op === 'page' && r.key && A.app.game(r.key)) { A.dialogs.closeAll(); A.gamepage.open(r.key); }
+    if (r.op === 'guide' && r.key && A.app.game(r.key)) {
+      if (A.gamepage.key() !== r.key) { A.dialogs.closeAll(); A.gamepage.open(r.key); }
+      setTimeout(() => A.web.open(r.key, r.url || null), 120);
+    }
   });
 
   A.api.suite().then((s) => { st = s; renderBadge(); }).catch(() => {});

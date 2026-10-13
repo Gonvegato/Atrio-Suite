@@ -16,6 +16,7 @@
     build(sheet, layer);
     A.$('#overlays').append(overlay);
     stack.push(layer);
+    if (A.web) A.web.depthChanged(stack.length);
     // Una capa puede decidir qué hace Atrás (p. ej. el calendario: de la barra lateral vuelve al día)
     A.nav.pushScope(overlay, () => (layer.back ? layer.back() : layer.close()));
     requestAnimationFrame(() => overlay.classList.add('on'));
@@ -27,6 +28,7 @@
     const i = stack.indexOf(layer);
     if (i < 0) return;
     stack.splice(i, 1);
+    if (A.web) A.web.depthChanged(stack.length);
     layer.overlay.classList.remove('on');
     A.nav.popScope(layer.overlay);
     setTimeout(() => layer.overlay.remove(), 260);
@@ -35,6 +37,7 @@
   }
   dialogs.closeAll = () => { while (stack.length) close(stack[stack.length - 1]); };
   dialogs.open = open;
+  dialogs.depth = () => stack.length;
 
   // LB / RB cambian de pestaña en la capa superior
   dialogs.tab = (step) => {
@@ -113,6 +116,14 @@
             if (m && m.type === 'game') return menuItem('heart', 'Ver tu valoración', () => { layer.close(); A.ronron.openGame(m.item.id); }, { sub: String(m.item.general) });
             return menuItem('heart', 'Valorar', () => { layer.close(); A.ronron.newRating(g); });
           })(),
+          menuItem('globe', 'Guías y webs', () => { layer.close(); if (!A.gamepage.isOpen() || A.gamepage.key() !== key) A.gamepage.open(key); setTimeout(() => A.web.open(key), 80); },
+            g.links && g.links.length ? { sub: String(g.links.length) } : undefined),
+          menuItem('gamepad', g.online ? 'No tratar como juego online' : 'Tratar como juego online', async () => {
+            const ng = await A.api.override(key, { online: !g.online });
+            layer.close();
+            A.app.updateGame(ng, true);
+            A.app.toast(ng.online ? 'Juego online: el botón Guías sale en su página' : 'Ya no se trata como juego online');
+          }),
           h('div.menu-sep'),
           menuItem('image', 'Cambiar arte', () => { layer.close(); dialogs.artPicker(key, 'cover'); }),
           menuItem('search', 'Corregir juego en SteamGridDB', () => { layer.close(); dialogs.matchGame(key); }),

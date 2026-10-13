@@ -120,6 +120,10 @@
         'data-nav': true, 'data-zone': 'gp-actions', 'aria-label': 'Cambiar arte',
         onclick: () => A.dialogs.artPicker(key, 'hero'),
       }, A.icon('image')),
+      // Juegos online (o con webs guardadas): guías dentro de la propia página
+      g.online || (g.links && g.links.length) ? h('button.btn.gp-btn.gp-web-btn', {
+        'data-nav': true, 'data-zone': 'gp-actions', onclick: () => (A.web.key() === key ? A.web.close() : A.web.open(key)),
+      }, A.icon('globe'), 'Guías') : null,
       h('button.icon-btn.gp-icon', {
         'data-nav': true, 'data-zone': 'gp-actions', 'aria-label': 'Capturas de este juego',
         onclick: () => A.dialogs.open('center', async (sheet, layer) => {
@@ -163,20 +167,24 @@
         : 'Sin partidas en las últimas 16 semanas'),
       h('button.btn.quiet', { 'data-nav': true, 'data-zone': 'gp-more', onclick: () => A.calendar.open() }, A.icon('calendar'), 'Abrir el calendario'));
 
+    const webPanel = root.querySelector('.web-panel'); // el panel de guías se conserva al redibujar
     root.replaceChildren(bg, h('div.gp-shade'),
       h('div.gp-content',
         h('div.gp-top', oldTop || h('div.gp-toprow', title, A.ronron ? A.ronron.card(g) : null), actions, ...notes),
         h('div.gp-bottom', actBox, sessBox, infoBox(g))));
+    if (webPanel) root.append(webPanel);
     A.nav.focusFirst(focusSel || '.gp-play');
   }
 
   page.open = (k) => {
     key = k;
     if (layer) { draw(); return; }
-    layer = A.dialogs.open('full', (sheet) => {
+    layer = A.dialogs.open('full', (sheet, l) => {
       sheet.classList.add('gp');
       root = sheet;
-    }, { onClose: () => { layer = null; root = null; } });
+      // Atrás (B / Esc): primero se cierran las guías, después la página
+      l.back = () => { if (A.web.isOpen()) A.web.close(); else l.close(); };
+    }, { onClose: () => { if (A.web.isOpen()) A.web.close(); layer = null; root = null; } });
     draw();
     if (A.hd && A.hd.enabled()) A.hd.request(k);
     // Datos de la tienda: se piden al abrir (y quedan guardados para la próxima vez)

@@ -52,7 +52,11 @@ data class LiveDev(
 data class LiveGame(val key: String, val name: String, val sg: Long, val start: Long, val cover: String, val hero: String, val logo: String)
 
 /** Un juego de la biblioteca de un PC. */
-data class PcGame(val key: String, val name: String, val cover: String, val sg: Long, val fav: Boolean, val lastPlayed: Long, val src: String, val minutes: Int)
+data class PcGame(
+    val key: String, val name: String, val cover: String, val sg: Long, val fav: Boolean, val lastPlayed: Long, val src: String, val minutes: Int,
+    /** Webs guardadas para el juego en Atrio del PC (guías, builds…): nombre y dirección. */
+    val links: List<Pair<String, String>> = emptyList()
+)
 
 /** Una captura (en la nube o ya en el móvil). */
 data class Shot(
@@ -271,7 +275,8 @@ object Suite {
         libs = lib.keys().asSequence().associateWith { d ->
             val arr = lib.optJSONObject(d)?.optJSONArray("games") ?: JSONArray()
             (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }.map {
-                PcGame(it.optString("k"), it.optString("n"), it.optString("c"), it.optLong("sg"), it.optInt("f") == 1, it.optLong("lp"), it.optString("s"), it.optInt("m"))
+                PcGame(it.optString("k"), it.optString("n"), it.optString("c"), it.optLong("sg"), it.optInt("f") == 1, it.optLong("lp"), it.optString("s"), it.optInt("m"),
+                    (it.optJSONArray("w") ?: JSONArray()).let { a -> (0 until a.length()).mapNotNull { i -> a.optJSONObject(i)?.let { l -> l.optString("n") to l.optString("u") } }.filter { p -> p.second.startsWith("http") } })
             }
         }
         // Respuestas a mis órdenes
@@ -422,6 +427,24 @@ object Suite {
         val res = withTimeoutOrNull(timeoutMs) { w.await() }
         synchronized(waits) { waits.remove(id) }
         res ?: fail("El PC no responde (¿Atrio está abierto y con tu cuenta?).")
+    }
+
+    /** El juego del PC con esa clave (de la biblioteca de cualquier PC). */
+    fun pcGame(key: String): PcGame? = libs.values.firstNotNullOfOrNull { l -> l.find { it.key == key } }
+
+    /**
+     * Adjunta una web (guía, build…) a un juego de la biblioteca del PC. Va al buzón del PC: le llega aunque
+     * esté apagado ahora mismo y Atrio la guarda en ese juego en cuanto se abra.
+     */
+    suspend fun addLink(key: String, url: String, name: String, dev: String? = null): Pair<Boolean, String> = withContext(Dispatchers.IO) {
+        val to = dev ?: libs.entries.firstOrNull { e -> e.value.any { it.key == key } }?.key ?: target()?.dev
+            ?: return@withContext false to "No encuentro ese juego en ningún PC."
+        val body = JSONObject().put("op", "link").put("key", key).put("u", url).put("n", name)
+            .put("t", JSONObject().put(".sv", "timestamp")).put("by", store.myName.ifBlank { store.accUser.ifBlank { "Móvil" } })
+        try {
+            Account.db(store, "POST", base() + "/suite/inbox/$to", body.toString(), ok404 = false)
+            true to (if (devices.any { it.dev == to && it.online }) "Web añadida" else "Web guardada: llegará al PC cuando abras Atrio")
+        } catch (e: Exception) { false to (e.message ?: "sin conexión") }
     }
 
     /** Pide una captura al PC. Devuelve el id de la captura (o null) y el mensaje. */

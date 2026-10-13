@@ -60,7 +60,10 @@ private fun now() = System.currentTimeMillis()
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRate: String = "", onOpenHandled: () -> Unit) {
+fun App(
+    store: Store, openId: Long, openPartner: Boolean, openGo: String, openRate: String = "",
+    shareUrl: String = "", shareTitle: String = "", onShareHandled: () -> Unit = {}, onOpenHandled: () -> Unit
+) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val snack = remember { SnackbarHostState() }
@@ -639,6 +642,7 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRa
     var shooting by remember { mutableStateOf(false) }
     var memoFor by remember { mutableStateOf<Pair<Play, Shot?>?>(null) }
     var segFor by remember { mutableStateOf<Play?>(null) }
+    var guideSheet by remember { mutableStateOf<PcGame?>(null) }
     var skipped by remember { mutableStateOf(store.segsSkipped) }
 
     /** La ficha en curso de un juego que se está jugando en el PC (si no la tienes, se crea en «Jugando»). */
@@ -875,7 +879,8 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRa
                                 plays, onShot = { shoot { s -> if (s != null) screen = Screen.ShotView(s, Screen.Home) } }, shooting = shooting,
                                 onMemo = { g -> playFor(g)?.let { memoFor = it to null } },
                                 onOpenPlay = { p -> section = 0; screen = Screen.PlayDetail(p) },
-                                onRemote = { screen = Screen.Suite }
+                                onRemote = { screen = Screen.Suite },
+                                onGuides = { guideSheet = it }
                             )
                             Spacer(Modifier.height(20.dp))
                             if (pendingSegs.isNotEmpty()) {
@@ -1292,6 +1297,16 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRa
             )
         }
 
+        val gs = guideSheet
+        if (gs != null) {
+            PcGameSheet(gs, Suite.target() != null, onPlay = {
+                scope.launch { val (_, m) = Suite.send("launch", org.json.JSONObject().put("key", gs.key)); say(m) }
+            }, onDismiss = { guideSheet = null }, say = { say(it) })
+        }
+        if (shareUrl.isNotEmpty()) {
+            if (!store.paired) { LaunchedEffect(shareUrl) { say("Para guardar webs en tus juegos del PC, entra antes en tu cuenta"); onShareHandled() } }
+            else ShareToGameDialog(shareUrl, shareTitle, onDismiss = { onShareHandled() }, say = { say(it) })
+        }
         val mf = memoFor
         if (mf != null) {
             MemoDialog(
