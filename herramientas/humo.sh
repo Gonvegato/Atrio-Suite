@@ -241,6 +241,8 @@ tap "example.com"; sleep 10
 shot 35_guia_abierta 1; alive "guia abierta"
 must see "Abrir en el navegador" 5
 must see "Example Domain" 20
+see "documentation examples" 30 || { cp "$OUT/ui.xml" "$OUT/ui_guia.xml"; shot 35b_guia_sin_texto 1; echo "   FALLO: la web no pinta su contenido" | tee -a "$LOG"; exit 1; }
+shot 35_guia_abierta 1
 echo "   la guía se abre dentro de Atrio" | tee -a "$LOG"
 adb shell input keyevent 4; sleep 2
 pkill -f lanzar-atrio || true
