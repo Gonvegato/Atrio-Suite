@@ -48,9 +48,18 @@ fun PlayDetailScreen(
     findTtb: (suspend (String) -> TtbResult)? = null,
     /** Series: episodios emitidos (id y nombre de la ficha). */
     findEpisodes: (suspend (Long, String) -> List<String>)? = null,
+    // La suite: partes jugadas, apuntes rápidos y capturas
+    onRateSeg: (Play, Seg) -> Unit = { _, _ -> },
+    onAddSeg: (Play) -> Unit = {},
+    onMemo: (Play) -> Unit = {},
+    onDeleteMemo: (Play, Memo) -> Unit = { _, _ -> },
+    onOpenShot: (Shot) -> Unit = {},
+    onPartDone: (Play, String) -> Unit = { _, _ -> },
     onBack: () -> Unit
 ) {
     var p by remember { mutableStateOf(p0) }
+    // Lo que llega de otro dispositivo (Atrio añade partes y apuntes) se recoge sin perder lo que estás tocando
+    LaunchedEffect(p0.segs, p0.memos, p0.entries) { p = p.copy(segs = p0.segs, memos = p0.memos, entries = p0.entries) }
     // Si la sesión termina, los minutos los añade la app: hay que recoger el valor nuevo.
     LaunchedEffect(p0.minutes) { if (p0.minutes != p.minutes) p = p.copy(minutes = p0.minutes) }
     // El director o los creadores llegan de internet poco después de añadirla: se recogen aquí.
@@ -132,9 +141,9 @@ fun PlayDetailScreen(
                 }
             } else if (!kind.isGame) {
                 val fe = findEpisodes
-                ProgressPanel(p, kind, episodes = if (fe != null) ({ fe(p.id, p.name) }) else null) { upd(it) }
+                ProgressPanel(p, kind, episodes = if (fe != null) ({ fe(p.id, p.name) }) else null, onPartDone = { onPartDone(p, it) }) { upd(it) }
             } else {
-                ProgressPanel(p, kind, find = findTtb) { upd(it) }
+                ProgressPanel(p, kind, find = findTtb, onPartDone = { onPartDone(p, it) }) { upd(it) }
                 Spacer(Modifier.height(16.dp))
                 MinutesEditor(p.minutes) { upd(p.copy(minutes = it)) }
                 Spacer(Modifier.height(14.dp))
@@ -170,6 +179,13 @@ fun PlayDetailScreen(
                         color = UiSoft, fontSize = 15.sp, textAlign = TextAlign.Center)
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
+            PlaySuitePanel(
+                p, kind,
+                onRate = { onRateSeg(p, it) }, onOpenEntry = { onNote(p, it) }, onAddSeg = { onAddSeg(p) },
+                onMemo = { onMemo(p) }, onDeleteMemo = { onDeleteMemo(p, it) }, onOpenShot = onOpenShot
+            )
 
             Spacer(Modifier.height(18.dp))
             Button({ onNote(p, null) }, shape = RoundedCornerShape(50),

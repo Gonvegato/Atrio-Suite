@@ -148,10 +148,45 @@ fun customItemId(name: String): Long {
 /** Un capítulo, acto o misión de algo que estás jugando. */
 data class Part(val name: String, val done: Boolean = false)
 
+/**
+ * Un apunte con notas. Si valora una parte concreta: [seg] es la parte jugada (sesión) y [part] el capítulo.
+ */
 data class Entry(
     val time: Long, val general: Int, val gfx: Int, val story: Int,
-    val music: Int, val gameplay: Int, val note: String, val chapter: Int = 0
+    val music: Int, val gameplay: Int, val note: String, val chapter: Int = 0,
+    val seg: String = "", val part: String = ""
 )
+
+/**
+ * Apunte rápido mientras juegas: solo texto (y, si quieres, una captura del PC).
+ * [del]: borrado (se queda la marca para que no reviva al mezclar con otro dispositivo); [u]: última edición.
+ */
+data class Memo(val t: Long, val x: String, val sh: String = "", val del: Boolean = false, val u: Long = 0L)
+
+/**
+ * Una parte jugada: una partida en el PC (la apunta Atrio al cerrar el juego), una sesión del temporizador
+ * o una que añades a mano. Se valora con un apunte que la lleva en [Entry.seg].
+ * src: "atrio", "timer" o "manual".
+ */
+data class Seg(val id: String, val s: Long, val e: Long, val min: Int, val src: String, val pc: String = "", val name: String = "")
+
+fun memoToJson(m: Memo): JSONObject = JSONObject().put("t", m.t).put("x", m.x).apply {
+    if (m.sh.isNotEmpty()) put("sh", m.sh)
+    if (m.del) put("del", 1)
+    if (m.u > 0L) put("u", m.u)
+}
+fun memoFromJson(o: JSONObject) = Memo(o.optLong("t"), o.optString("x"), o.optString("sh", ""), o.optInt("del", 0) == 1 || o.optBoolean("del", false), o.optLong("u", 0L))
+
+fun segToJson(g: Seg): JSONObject = JSONObject().put("id", g.id).put("s", g.s).put("e", g.e).put("min", g.min).put("src", g.src).apply {
+    if (g.pc.isNotEmpty()) put("pc", g.pc)
+    if (g.name.isNotEmpty()) put("name", g.name)
+}
+fun segFromJson(o: JSONObject) = Seg(o.optString("id"), o.optLong("s"), o.optLong("e"), o.optInt("min"), o.optString("src"), o.optString("pc", ""), o.optString("name", ""))
+
+/** "Partida en el PC", "Sesión con temporizador"… */
+fun Seg.label(): String = name.ifBlank {
+    when (src) { "atrio" -> if (pc.isNotBlank()) "Partida en $pc" else "Partida en el PC"; "timer" -> "Sesión con temporizador"; else -> "Parte añadida a mano" }
+}
 
 /** status: 0 = en lista, 1 = en progreso, 2 = dropeado/abandonado */
 data class Play(
@@ -166,8 +201,17 @@ data class Play(
     /** Capítulos o actos para ir marcando. */
     val parts: List<Part> = emptyList(),
     /** Logo del juego (lo elige Atrio); aquí solo se conserva. */
-    val logo: String = ""
+    val logo: String = "",
+    /** Apuntes rápidos (los borrados se quedan marcados: usa [liveMemos]). */
+    val memos: List<Memo> = emptyList(),
+    /** Partes jugadas (sesiones), para valorarlas. */
+    val segs: List<Seg> = emptyList()
 ) {
+    val liveMemos: List<Memo> get() = memos.filter { !it.del }
+
+    /** Partes jugadas que aún no tienen apunte. */
+    fun unrated(): List<Seg> = segs.filter { s -> entries.none { it.seg == s.id } }
+
     /** Porcentaje completado: por capítulos si los hay; si no, por horas frente a la duración media. */
     fun percent(): Int? = when {
         parts.isNotEmpty() -> (parts.count { it.done } * 100 / parts.size)
@@ -257,7 +301,8 @@ fun playFromJson(o: JSONObject): Play {
         (0 until es.length()).map { i ->
             val e = es.getJSONObject(i)
             Entry(e.getLong("time"), e.getInt("general"), e.getInt("gfx"), e.getInt("story"),
-                e.getInt("music"), e.getInt("gameplay"), e.getString("note"), e.optInt("chapter", 0))
+                e.getInt("music"), e.getInt("gameplay"), e.getString("note"), e.optInt("chapter", 0),
+                e.optString("seg", ""), e.optString("part", ""))
         },
         o.optInt("chapter", 0), o.optInt("every", 3),
         o.optLong("start", 0L), o.optLong("end", 0L), o.optString("creator", ""),
@@ -266,7 +311,9 @@ fun playFromJson(o: JSONObject): Play {
         (o.optJSONArray("parts") ?: JSONArray()).let { a ->
             (0 until a.length()).mapNotNull { i -> a.optJSONObject(i)?.let { Part(it.optString("n"), it.optBoolean("d")) } }
         },
-        o.optString("logo", "")
+        o.optString("logo", ""),
+        (o.optJSONArray("memos") ?: JSONArray()).let { a -> (0 until a.length()).mapNotNull { i -> a.optJSONObject(i)?.let { memoFromJson(it) } } },
+        (o.optJSONArray("segs") ?: JSONArray()).let { a -> (0 until a.length()).mapNotNull { i -> a.optJSONObject(i)?.let { segFromJson(it) } } }
     )
 }
 
@@ -275,7 +322,8 @@ fun playToJson(pl: Play): JSONObject {
     pl.entries.forEach { e ->
         es.put(JSONObject().put("time", e.time).put("general", e.general).put("gfx", e.gfx)
             .put("story", e.story).put("music", e.music).put("gameplay", e.gameplay)
-            .put("note", e.note).put("chapter", e.chapter))
+            .put("note", e.note).put("chapter", e.chapter)
+            .apply { if (e.seg.isNotEmpty()) put("seg", e.seg); if (e.part.isNotEmpty()) put("part", e.part) })
     }
     return JSONObject().put("id", pl.id).put("name", pl.name).put("cover", pl.cover)
         .put("hero", pl.hero).put("status", pl.status).put("entries", es)
@@ -286,6 +334,41 @@ fun playToJson(pl: Play): JSONObject {
         .put("ttbMain", pl.ttbMain).put("ttbExtra", pl.ttbExtra).put("ttbFull", pl.ttbFull).put("ttbSrc", pl.ttbSrc)
         .put("parts", JSONArray().apply { pl.parts.forEach { put(JSONObject().put("n", it.name).put("d", it.done)) } })
         .put("logo", pl.logo)
+        .apply {
+            if (pl.memos.isNotEmpty()) put("memos", JSONArray().apply { pl.memos.forEach { put(memoToJson(it)) } })
+            if (pl.segs.isNotEmpty()) put("segs", JSONArray().apply { pl.segs.forEach { put(segToJson(it)) } })
+        }
+}
+
+/**
+ * Al mezclar dos versiones de una ficha, los apuntes rápidos y las partes jugadas se suman (el móvil y Atrio
+ * pueden añadirlos a la vez sin pisarse). Igual que unite() en Atrio.
+ */
+fun uniteLists(win: JSONObject, lose: JSONObject): JSONObject {
+    fun union(key: String, idKey: String, better: (JSONObject, JSONObject) -> JSONObject) {
+        val a = win.optJSONArray(key)
+        val b = lose.optJSONArray(key)
+        if (a == null && b == null) return
+        val m = LinkedHashMap<String, JSONObject>()
+        for (arr in listOf(a, b)) {
+            if (arr == null) continue
+            for (i in 0 until arr.length()) {
+                val o = arr.optJSONObject(i) ?: continue
+                val k = o.opt(idKey)?.toString() ?: continue
+                val cur = m[k]
+                m[k] = if (cur == null) o else better(cur, o)
+            }
+        }
+        val sorted = m.values.sortedBy { it.optLong(if (key == "memos") "t" else "s") }
+        win.put(key, JSONArray().apply { sorted.forEach { put(it) } })
+    }
+    union("memos", "t") { p, q ->
+        val pd = p.optInt("del", 0) == 1 || p.optBoolean("del", false)
+        val qd = q.optInt("del", 0) == 1 || q.optBoolean("del", false)
+        if (qd && !pd) q else if (q.optLong("u", 0L) > p.optLong("u", 0L)) q else p
+    }
+    union("segs", "id") { p, _ -> p }
+    return win
 }
 
 fun gamesFromJson(a: JSONArray): List<Game> = (0 until a.length()).map { gameFromJson(a.getJSONObject(it)) }
@@ -460,6 +543,37 @@ class Store(ctx: Context) {
     var steamUser: String
         get() = p.getString("steamuser", "") ?: ""
         set(v) { p.edit().putString("steamuser", v.trim()).apply() }
+
+    // ---- La suite (Atrio en el PC) ----
+    /** Capturas del PC guardadas en este móvil (JSON: id, uri, juego, tamaño…). */
+    var shotsRaw: String
+        get() = p.getString("shots", "[]") ?: "[]"
+        set(v) { p.edit().putString("shots", v).apply() }
+
+    /** Partes jugadas de las que ya se ha avisado (para no repetir la notificación). */
+    var segsNotified: Set<String>
+        get() = (p.getString("segsnot", "") ?: "").split(",").filter { it.isNotBlank() }.toSet()
+        set(v) { p.edit().putString("segsnot", v.toList().takeLast(400).joinToString(",")).apply() }
+
+    /** Partes jugadas que has decidido no valorar (no vuelven a salir en «Por valorar»). */
+    var segsSkipped: Set<String>
+        get() = (p.getString("segskip", "") ?: "").split(",").filter { it.isNotBlank() }.toSet()
+        set(v) { p.edit().putString("segskip", v.toList().takeLast(400).joinToString(",")).apply() }
+
+    /** Avisar cuando acabe una partida en el PC para valorarla. */
+    var notifySegs: Boolean
+        get() = p.getBoolean("notifysegs", true)
+        set(v) { p.edit().putBoolean("notifysegs", v).apply() }
+
+    /** Guardar también las capturas en la galería del móvil (Imágenes/Ronrón). */
+    var shotsToGallery: Boolean
+        get() = p.getBoolean("shotsgal", true)
+        set(v) { p.edit().putBoolean("shotsgal", v).apply() }
+
+    /** Último PC elegido para mandar órdenes (si tienes varios con Atrio). */
+    var suitePc: String
+        get() = p.getString("suitepc", "") ?: ""
+        set(v) { p.edit().putString("suitepc", v).apply() }
 
     // ---- Siguiente (cartas) ----
     /** Gustos marcados a mano (géneros o temas). */
@@ -755,7 +869,9 @@ class Store(ctx: Context) {
                 val o = rem.optJSONObject(i) ?: continue
                 val id = o.optLong("id")
                 val cur = byId[id]
-                if (cur == null || itemUpdated(o) > itemUpdated(cur)) byId[id] = o
+                if (cur == null) byId[id] = o
+                else if (itemUpdated(o) > itemUpdated(cur)) byId[id] = uniteLists(o, cur)
+                else byId[id] = uniteLists(cur, o)
             }
             val out = JSONArray()
             byId.forEach { (id, o) ->

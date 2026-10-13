@@ -141,3 +141,51 @@ class CloudWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         return if (retry && runAttemptCount < 5) Result.retry() else Result.success()
     }
 }
+
+/**
+ * La suite: cada cuarto de hora (lo mínimo que deja Android) mira si Atrio ha apuntado partidas nuevas
+ * y avisa para valorarlas. Con la app abierta llegan al momento, sin esperar.
+ */
+object SuiteWatch {
+    fun schedule(ctx: Context) {
+        val req = PeriodicWorkRequestBuilder<SuiteWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .build()
+        WorkManager.getInstance(ctx).enqueueUniquePeriodicWork("suite", ExistingPeriodicWorkPolicy.KEEP, req)
+    }
+}
+
+class SuiteWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+    override suspend fun doWork(): Result {
+        val app = applicationContext
+        val store = Store(app)
+        if (!store.paired || !store.notifySegs) return Result.success()
+        try { Couple.syncOwn(store) } catch (e: Exception) { return Result.retry() }
+        val seen = store.segsNotified
+        val skip = store.segsSkipped
+        val now = System.currentTimeMillis()
+        val fresh = store.loadPlays(0).flatMap { p -> p.unrated().map { p to it } }
+            .filter { (_, s) -> s.src == "atrio" && s.id !in seen && s.id !in skip && now - s.e < 12 * 3_600_000L }
+        if (fresh.isEmpty()) return Result.success()
+        store.segsNotified = seen + fresh.map { it.second.id }
+        val nm = app.getSystemService(NotificationManager::class.java)
+        nm.createNotificationChannel(NotificationChannel("partes", "Partidas para valorar", NotificationManager.IMPORTANCE_DEFAULT))
+        for ((p, s) in fresh.takeLast(3)) {
+            val intent = Intent(app, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("rate", "${p.id}:${s.id}")
+            }
+            val code = (s.id.hashCode() and 0x7fffffff) % 100000 + 3000
+            val pi = PendingIntent.getActivity(app, code, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val n = Notification.Builder(app, "partes")
+                .setSmallIcon(android.R.drawable.star_on)
+                .setContentTitle(p.name)
+                .setContentText("Has jugado ${hoursText(s.min)}${if (s.pc.isNotBlank()) " en ${s.pc}" else ""}. ¿Qué tal esa partida?")
+                .setContentIntent(pi)
+                .setAutoCancel(true)
+                .build()
+            nm.notify(code, n)
+        }
+        return Result.success()
+    }
+}

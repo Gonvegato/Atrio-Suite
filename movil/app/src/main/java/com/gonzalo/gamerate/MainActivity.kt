@@ -49,7 +49,11 @@ sealed interface Screen {
     /** editing: abrir directamente en edición (si no, las ya valoradas se abren en modo lectura). */
     class Edit(val game: Game, val isNew: Boolean, val editing: Boolean = false) : Screen
     class PlayDetail(val play: Play) : Screen
-    class Note(val play: Play, val entry: Entry?) : Screen
+    class Note(val play: Play, val entry: Entry?, val seg: Seg? = null, val part: String = "") : Screen
+    /** Mando a distancia del PC (la suite con Atrio). */
+    object Suite : Screen
+    /** Una captura a pantalla completa; [back] es adonde se vuelve. */
+    class ShotView(val shot: Shot, val back: Screen) : Screen
     /** Ficha de tu pareja abierta desde el menú o desde su calendario. */
     class PartnerItem(val kind: Int, val id: Long) : Screen
 }
@@ -59,6 +63,8 @@ class MainActivity : ComponentActivity() {
     private var openPartner by mutableStateOf(false)
     /** Acceso directo del icono: "add_game", "add_book", "next_game", "next_book", "stats_game", "stats_book". */
     private var openGo by mutableStateOf("")
+    /** Aviso de «partida terminada en el PC»: valorar esa parte ("idDelJuego:idDeLaParte"). */
+    private var openRate by mutableStateOf("")
 
     private fun read(i: Intent?) {
         // Al volver desde Recientes, Android repite la intent original: no hay que repetir el atajo.
@@ -66,6 +72,7 @@ class MainActivity : ComponentActivity() {
         openId = i?.getLongExtra("play_id", 0L) ?: 0L
         openPartner = i?.getBooleanExtra("partner", false) ?: false
         openGo = i?.getStringExtra("go") ?: ""
+        openRate = i?.getStringExtra("rate") ?: ""
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,7 +158,7 @@ class MainActivity : ComponentActivity() {
             }
             Box(Modifier.fillMaxSize()) {
                 MaterialTheme(colorScheme = appColors(), typography = AppTypography) {
-                    App(store, openId, openPartner, openGo) { openId = 0L; openPartner = false; openGo = "" }
+                    App(store, openId, openPartner, openGo, openRate) { openId = 0L; openPartner = false; openGo = ""; openRate = "" }
                 }
                 val img = overlay
                 if (img != null) {

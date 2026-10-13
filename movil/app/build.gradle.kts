@@ -9,8 +9,8 @@ android {
         applicationId = "com.gonzalo.gamerate"
         minSdk = 29
         targetSdk = 34
-        versionCode = 14
-        versionName = "3.8"
+        versionCode = 15
+        versionName = "4.0"
     }
     // Firma fija: así cada versión nueva se instala encima de la anterior sin borrar tus datos.
     signingConfigs {
@@ -53,4 +53,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
+    // Pruebas de la lógica en el ordenador (sin emulador): org.json de verdad en lugar del de Android
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
 }

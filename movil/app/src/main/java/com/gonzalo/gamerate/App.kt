@@ -16,6 +16,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -58,7 +60,7 @@ private fun now() = System.currentTimeMillis()
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpenHandled: () -> Unit) {
+fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRate: String = "", onOpenHandled: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val snack = remember { SnackbarHostState() }
@@ -151,6 +153,18 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpen
         life.lifecycle.addObserver(obs)
         onDispose { life.lifecycle.removeObserver(obs) }
     }
+
+    // ---- La suite: conexión en tiempo real con Atrio mientras la app está delante ----
+    DisposableEffect(life) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, ev ->
+            if (ev == androidx.lifecycle.Lifecycle.Event.ON_START) Suite.start(ctx, store)
+            if (ev == androidx.lifecycle.Lifecycle.Event.ON_STOP) Suite.stop()
+        }
+        life.lifecycle.addObserver(obs)
+        onDispose { life.lifecycle.removeObserver(obs) }
+    }
+    LaunchedEffect(store.paired) { if (store.paired) { Suite.start(ctx, store); SuiteWatch.schedule(ctx) } }
+    LaunchedEffect(Suite.notice) { Suite.notice?.let { say(it); Suite.notice = null } }
 
     // ---- Tu misma cuenta en otro dispositivo: lo que llegue de allí se vuelve a leer aquí ----
     LaunchedEffect(SyncBus.version) { if (SyncBus.version > 0) reloadAll() }
@@ -334,8 +348,14 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpen
         if (id != 0L && store.sessionStart > 0L) {
             val mins = ((now() - store.sessionStart) / 60_000L).toInt().coerceIn(0, 720)
             if (mins > 0) {
-                setPlays(GAMES, plays.map { if (it.id == id) it.copy(minutes = it.minutes + mins, updated = now()) else it })
-                say("Sesión terminada: +${hoursText(mins)}")
+                // La sesión queda como parte jugada, lista para valorarla
+                val sg = Seg("t${store.sessionStart}", store.sessionStart, now(), mins, "timer")
+                setPlays(GAMES, plays.map { if (it.id == id) it.copy(minutes = it.minutes + mins, segs = it.segs + sg, updated = now()) else it })
+                val pl = plays.find { it.id == id }
+                scope.launch {
+                    val r = snack.showSnackbar("Sesión terminada: +${hoursText(mins)}", actionLabel = "Valorar", withDismissAction = true, duration = SnackbarDuration.Long)
+                    if (r == SnackbarResult.ActionPerformed && pl != null) { section = 0; screen = Screen.Note(pl, null, sg) }
+                }
             }
         }
         store.sessionId = 0L
@@ -615,6 +635,93 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpen
         }
     }
 
+    // ---- La suite: apuntes rápidos, partes jugadas y capturas ----
+    var shooting by remember { mutableStateOf(false) }
+    var memoFor by remember { mutableStateOf<Pair<Play, Shot?>?>(null) }
+    var segFor by remember { mutableStateOf<Play?>(null) }
+    var skipped by remember { mutableStateOf(store.segsSkipped) }
+
+    /** La ficha en curso de un juego que se está jugando en el PC (si no la tienes, se crea en «Jugando»). */
+    fun playFor(g: LiveGame): Play? {
+        if (g.sg <= 0L) { say("Atrio no sabe qué juego es en SteamGridDB: corrígelo en el PC (Opciones → Corregir juego)"); return null }
+        plays.find { it.id == g.sg }?.let { return it }
+        games.find { it.id == g.sg }?.let { v ->
+            val np = Play(v.id, v.name, v.cover, v.hero, 1, emptyList(), start = today(), creator = v.creator, platform = "PC", updated = now(), logo = v.logo)
+            setPlays(GAMES, plays + np)
+            say("${v.name} vuelve a «Jugando» (lo rejuegas)")
+            return np
+        }
+        val np = Play(g.sg, g.name, g.cover, g.hero, 1, emptyList(), start = today(), platform = "PC", updated = now(), logo = g.logo)
+        setPlays(GAMES, plays + np)
+        say("${g.name} añadido a «Jugando»")
+        return np
+    }
+
+    fun addMemo(p: Play, text: String, shotId: String) {
+        val k = kindOf(plays.find { it.id == p.id }?.let { 0 } ?: section.coerceAtLeast(0))
+        val cur = playsOf(k).find { it.id == p.id } ?: p
+        val m = Memo(now(), text, shotId, u = now())
+        setPlays(k, playsOf(k).filter { it.id != p.id } + cur.copy(memos = cur.memos + m, updated = now()))
+        say(if (shotId.isNotEmpty()) "Apunte guardado con su captura" else "Apunte guardado")
+    }
+
+    fun deleteMemo(p: Play, m: Memo) {
+        val k = kind
+        val cur = playsOf(k).find { it.id == p.id } ?: return
+        setPlays(k, playsOf(k).filter { it.id != p.id } + cur.copy(memos = cur.memos.map { if (it.t == m.t) it.copy(del = true, u = now()) else it }, updated = now()))
+    }
+
+    fun shoot(onDone: (Shot?) -> Unit = {}) {
+        if (shooting) return
+        shooting = true
+        scope.launch {
+            val (id, msg) = Suite.shoot()
+            if (id == null) { say(msg); shooting = false; onDone(null); return@launch }
+            val s = Suite.awaitLocal(id)
+            shooting = false
+            onDone(s)
+            if (s == null) say("La captura se está bajando; aparecerá en Capturas")
+        }
+    }
+
+    fun saveMemo(p: Play, text: String, withShot: Boolean, preset: Shot?) {
+        when {
+            preset != null -> addMemo(p, text, preset.id)
+            withShot -> shoot { s -> addMemo(p, text, s?.id ?: "") }
+            else -> addMemo(p, text, "")
+        }
+    }
+
+    fun addSeg(p: Play, sg: Seg) {
+        val k = kind
+        val cur = playsOf(k).find { it.id == p.id } ?: p
+        val np = cur.copy(segs = cur.segs + sg, minutes = cur.minutes + if (k.isGame) sg.min else 0, updated = now())
+        setPlays(k, playsOf(k).filter { it.id != p.id } + np)
+        screen = Screen.Note(np, null, sg)
+    }
+
+    /** Partes jugadas sin valorar de todo lo que tienes en curso (lo más reciente primero). */
+    val pendingSegs: List<Pair<Play, Seg>> = (listOf(GAMES, BOOKS) + kinds).flatMap { k -> playsOf(k).filter { it.status != 2 }.flatMap { p -> p.unrated().map { p to it } } }
+        .filter { it.second.id !in skipped && now() - it.second.e < 30L * 86_400_000L }
+        .sortedByDescending { it.second.e }
+
+    LaunchedEffect(openRate) {
+        if (openRate.isNotEmpty()) {
+            val pid = openRate.substringBefore(":").toLongOrNull()
+            val sid = openRate.substringAfter(":")
+            plays.find { it.id == pid }?.let { p -> p.segs.find { it.id == sid }?.let { sg -> section = 0; screen = Screen.Note(p, null, sg) } }
+            onOpenHandled()
+        }
+    }
+    // Una captura recién llegada se puede abrir desde el aviso
+    LaunchedEffect(Suite.arrived) {
+        val a = Suite.arrived ?: return@LaunchedEffect
+        Suite.arrived = null
+        if (screen is Screen.ShotView || memoFor != null) return@LaunchedEffect
+        val r = snack.showSnackbar("Captura de ${a.game.ifBlank { a.pc }} · ${a.w}×${a.h}", actionLabel = "Ver", withDismissAction = true)
+        if (r == SnackbarResult.ActionPerformed) screen = Screen.ShotView(a, screen)
+    }
+
     fun toEdit(s: Screen.Art, g: Game) {
         val p = s.play
         if (p != null) {
@@ -686,7 +793,9 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpen
     }
 
     BackHandler(enabled = section != -1 || screen !is Screen.Home || pv) {
-        if (screen !is Screen.Home) { screen = Screen.Home } else if (section != -1) { section = -1 } else togglePartner()
+        val cur = screen
+        if (cur is Screen.ShotView) { screen = cur.back }
+        else if (screen !is Screen.Home) { screen = Screen.Home } else if (section != -1) { section = -1 } else togglePartner()
     }
 
     val look = Mode.look
@@ -759,7 +868,30 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpen
                     onEditKind = if (pv) null else ({ k -> kindEdit = k }),
                     onRecAdd = { recAdd(it) },
                     onRecDismiss = { recDone(it) },
-                    onAct = { a -> withReveal { screen = Screen.PartnerItem(a.kind, a.id) } }
+                    onAct = { a -> withReveal { screen = Screen.PartnerItem(a.kind, a.id) } },
+                    top = {
+                        if (!pv && store.paired) {
+                            LiveCard(
+                                plays, onShot = { shoot { s -> if (s != null) screen = Screen.ShotView(s, Screen.Home) } }, shooting = shooting,
+                                onMemo = { g -> playFor(g)?.let { memoFor = it to null } },
+                                onOpenPlay = { p -> section = 0; screen = Screen.PlayDetail(p) },
+                                onRemote = { screen = Screen.Suite }
+                            )
+                            if (Suite.pcs().isNotEmpty()) Spacer(Modifier.height(20.dp))
+                            if (pendingSegs.isNotEmpty()) {
+                                PendingParts(
+                                    pendingSegs,
+                                    onRate = { p, sg -> section = if (plays.any { it.id == p.id }) 0 else kinds.firstOrNull { k -> playsOf(k).any { it.id == p.id } }?.id ?: 1; screen = Screen.Note(p, null, sg) },
+                                    onDismiss = { _, sg -> skipped = skipped + sg.id; store.segsSkipped = skipped }
+                                )
+                                Spacer(Modifier.height(20.dp))
+                            }
+                            if (Suite.localShots.isNotEmpty() || Suite.downloading.isNotEmpty()) {
+                                ShotStrip(Suite.localShots.take(10), "Últimas capturas") { s -> screen = Screen.ShotView(s, Screen.Home) }
+                                Spacer(Modifier.height(20.dp))
+                            }
+                        }
+                    }
                 )
             } else {
             when (s) {
@@ -1054,27 +1186,55 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpen
                         onDelete = { p -> deletePlay(p); screen = Screen.Home },
                         findTtb = { n -> TimeToBeat.find(n, store) },
                         findEpisodes = if (kind.isTv) ({ id, name -> TvMaze.episodes(id, name) }) else null,
+                        onRateSeg = { p, sg -> screen = Screen.Note(p, null, sg) },
+                        onAddSeg = { p -> segFor = p },
+                        onMemo = { p -> memoFor = p to null },
+                        onDeleteMemo = { p, m -> deleteMemo(p, m) },
+                        onOpenShot = { sh -> screen = Screen.ShotView(sh, Screen.PlayDetail(live)) },
+                        onPartDone = { p, name ->
+                            scope.launch {
+                                val r = snack.showSnackbar("«$name» completado", actionLabel = "Valorar", withDismissAction = true)
+                                if (r == SnackbarResult.ActionPerformed) screen = Screen.Note(myPlays.find { it.id == p.id } ?: p, null, null, name)
+                            }
+                        },
                         onBack = { screen = Screen.Home }
                     )
                 }
 
                 is Screen.Note -> NoteScreen(
-                    play = s.play, entry = s.entry, kind = kind,
+                    play = s.play, entry = s.entry, kind = kind, seg = s.seg, part = s.part,
                     onSave = { e ->
+                        // Sobre la versión más reciente (puede haber llegado algo de Atrio mientras escribías)
+                        val base = myPlays.find { it.id == s.play.id } ?: s.play
                         val old = s.entry
-                        val es = if (old == null) s.play.entries + e
-                        else s.play.entries.map { x -> if (x.time == old.time) e else x }
-                        val np = s.play.copy(entries = es)
+                        val es = if (old == null) base.entries + e
+                        else base.entries.map { x -> if (x.time == old.time) e else x }
+                        val np = base.copy(entries = es)
                         savePlay(np)
                         screen = Screen.PlayDetail(np)
                     },
                     onDelete = {
+                        val base = myPlays.find { it.id == s.play.id } ?: s.play
                         val old = s.entry
-                        val np = s.play.copy(entries = s.play.entries.filter { x -> x.time != old?.time })
+                        val np = base.copy(entries = base.entries.filter { x -> x.time != old?.time })
                         savePlay(np)
                         screen = Screen.PlayDetail(np)
                     },
-                    onBack = { screen = Screen.PlayDetail(s.play) }
+                    onBack = { screen = Screen.PlayDetail(myPlays.find { it.id == s.play.id } ?: s.play) }
+                )
+
+                Screen.Suite -> SuiteScreen(
+                    plays, store, onBack = { screen = Screen.Home },
+                    onOpenShot = { sh -> screen = Screen.ShotView(sh, Screen.Suite) },
+                    onMemo = { g -> playFor(g)?.let { memoFor = it to null } },
+                    onOpenPlay = { p -> section = 0; screen = Screen.PlayDetail(p) },
+                    say = { say(it) }
+                )
+
+                is Screen.ShotView -> ShotViewer(
+                    s.shot, onBack = { screen = s.back },
+                    onDelete = { Suite.deleteLocal(s.shot); screen = s.back },
+                    onMemo = (plays.find { it.id == s.shot.sg })?.let { p -> { memoFor = p to s.shot } }
                 )
 
                 is Screen.PartnerItem -> {
@@ -1124,6 +1284,19 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, onOpen
                 dismissButton = { TextButton({ pendingRestore = null }) { Text("Cancelar") } },
                 shape = RoundedCornerShape(24.dp)
             )
+        }
+
+        val mf = memoFor
+        if (mf != null) {
+            MemoDialog(
+                "Apunte · ${mf.first.name}", canShot = Suite.target() != null, presetShot = mf.second,
+                onSave = { t, w -> memoFor = null; saveMemo(mf.first, t, w, mf.second) },
+                onDismiss = { memoFor = null }
+            )
+        }
+        val sf = segFor
+        if (sf != null) {
+            AddSegDialog(kind, onSave = { sg -> segFor = null; addSeg(sf, sg) }, onDismiss = { segFor = null })
         }
 
         if (kindNew || kindEdit != null) {

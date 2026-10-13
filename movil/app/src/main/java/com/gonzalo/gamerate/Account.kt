@@ -182,7 +182,7 @@ object Account {
     }
 
     /** Pase de acceso vigente (se renueva solo; dura una hora). */
-    private fun token(store: Store, force: Boolean = false): String {
+    fun token(store: Store, force: Boolean = false): String {
         if (!force && store.accToken.isNotBlank() && System.currentTimeMillis() < store.accExp - 60_000L) return store.accToken
         if (store.accRefresh.isBlank()) throw Fail("No has iniciado sesión.")
         val body = "grant_type=refresh_token&refresh_token=" + URLEncoder.encode(store.accRefresh, "UTF-8")

@@ -58,6 +58,8 @@ fun ProgressPanel(
     find: (suspend (String) -> TtbResult)? = null,
     /** Series: trae los episodios emitidos para marcarlos. */
     episodes: (suspend () -> List<String>)? = null,
+    /** Se acaba de marcar como completado un capítulo (para valorarlo). */
+    onPartDone: ((String) -> Unit)? = null,
     onChange: (Play) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -126,6 +128,7 @@ fun ProgressPanel(
                             onLongClick = { onChange(p.copy(parts = p.parts.mapIndexed { j, x -> if (j <= i) x.copy(done = true) else x })) }
                         ) {
                             onChange(p.copy(parts = p.parts.mapIndexed { j, x -> if (j == i) x.copy(done = !x.done) else x }))
+                            if (!part.done) onPartDone?.invoke(part.name)
                         }
                         .padding(vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
