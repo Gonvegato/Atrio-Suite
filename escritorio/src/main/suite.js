@@ -228,6 +228,10 @@ async function cleanup() {
     if ((got || old) && !s.gone) {
       try { await del(`/shotdata/${id}`); await patch(`/suite/shots/${id}`, { gone: true }); } catch { /* otra vez será */ }
     }
+    // La ficha de la captura (sin la imagen) se olvida al mes: la foto ya está en el móvil y en el PC
+    else if (s.gone && now() - (Number(s.t) || 0) > 30 * 86400000) {
+      try { await del(`/suite/shots/${id}`); } catch { /* */ }
+    }
   }
 }
 
