@@ -846,7 +846,17 @@ app.whenReady().then(async () => {
   createWindow();
   suite.start({
     log, send, fetch: (...a) => net.fetch(...a), version: () => app.getVersion(), config: () => config.get(),
-    current: currentGame, library: suiteLibrary, launch: launchGame, power: doPower, rescan,
+    current: currentGame, library: suiteLibrary,
+    // Minutos jugados hoy en este PC (contando la partida en curso)
+    today: () => {
+      if (!tracker) return 0;
+      const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+      const st = tracker.state();
+      let ms = 0;
+      for (const x of st.sessions) if (x[2] > d0.getTime()) ms += x[2] - Math.max(x[1], d0.getTime());
+      for (const a of st.active || []) ms += Date.now() - Math.max(a.s, d0.getTime());
+      return Math.round(ms / 60000);
+    }, launch: launchGame, power: doPower, rescan,
     focus: () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } },
   }, ronron);
   // Si el equipo se suspende por otro lado (botón, tapa, inactividad), tampoco cuenta el rato dormido

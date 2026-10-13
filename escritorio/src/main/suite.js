@@ -70,6 +70,7 @@ function livePayload() {
   return {
     app: 'atrio', name: os.hostname(), os: process.platform, v: ctx.version(), on: true,
     game: g || null,
+    today: ctx.today ? ctx.today() : 0,
     shot: (ctx.config().suite || {}).remoteShot !== false,
   };
 }

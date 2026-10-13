@@ -43,7 +43,9 @@ import java.util.Base64
 /** Un dispositivo de tu cuenta conectado (un PC con Atrio, otro móvil…). */
 data class LiveDev(
     val dev: String, val app: String, val name: String, val os: String, val online: Boolean, val at: Long,
-    val game: LiveGame?, val canShot: Boolean
+    val game: LiveGame?, val canShot: Boolean,
+    /** Minutos jugados hoy en ese PC. */
+    val today: Int = 0
 )
 
 /** Lo que se está jugando en un PC. */
@@ -262,7 +264,7 @@ object Suite {
                 d, o.optString("app"), o.optString("name", "?"), o.optString("os"),
                 o.optBoolean("on") && now - o.optLong("at") < ONLINE_MS, o.optLong("at"),
                 g?.let { LiveGame(it.optString("key"), it.optString("name"), it.optLong("sg"), it.optLong("s"), it.optString("cover"), it.optString("hero"), it.optString("logo")) },
-                o.optBoolean("shot", true)
+                o.optBoolean("shot", true), o.optInt("today", 0)
             )
         }.sortedByDescending { it.at }.toList()
         val lib = t?.optJSONObject("lib") ?: JSONObject()

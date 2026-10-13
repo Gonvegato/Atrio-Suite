@@ -142,6 +142,7 @@ fun LiveCard(
             Column(Modifier.weight(1f)) {
                 Overline("Atrio · ${pc.name}")
                 Text("Conectado, sin jugar", fontFamily = Display, fontSize = 20.sp)
+                if (pc.today > 0) Text("Hoy llevas ${hoursText(pc.today)} jugando", color = Muted, fontSize = 12.sp)
             }
             IconPill(Icons.Rounded.PhotoCamera, "Captura") { onShot() }
             Spacer(Modifier.width(8.dp))
