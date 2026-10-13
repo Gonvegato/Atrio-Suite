@@ -1,0 +1,64 @@
+/* La suite con Ronrón: indicador del móvil, panel, capturas y partes para valorar.
+   El rojo «en directo» es el mismo que usa Ronrón en el móvil. */
+:root { --live: #ff6b5e; --live-soft: rgba(255, 107, 94, .16); }
+body[data-scheme="niebla"], body[data-scheme="papel"] { --live: #d9443a; --live-soft: rgba(217, 68, 58, .14); }
+
+/* Indicador en la barra: el móvil conectado late */
+.suite-btn { position: relative; }
+.suite-btn.off { opacity: .55; }
+.suite-dot {
+  position: absolute; right: .42rem; top: .42rem; width: .55rem; height: .55rem; border-radius: 50%;
+  background: var(--fg-3); box-shadow: 0 0 0 2px var(--bg); transition: background var(--dur);
+}
+.suite-btn.live .suite-dot { background: var(--live); animation: suite-beat 1.6s ease-in-out infinite; }
+.suite-btn.live { color: var(--fg); }
+@keyframes suite-beat { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.7); opacity: .45; } }
+body.no-motion .suite-btn.live .suite-dot { animation: none; }
+
+/* Destello al hacer una captura */
+.shot-flash { position: fixed; inset: 0; z-index: 9999; pointer-events: none; background: #fff; opacity: 0; }
+.shot-flash.go { animation: shot-flash .6s ease-out; }
+@keyframes shot-flash { 0% { opacity: .85; } 100% { opacity: 0; } }
+
+/* Panel lateral */
+.suite-panel { display: flex; flex-direction: column; }
+.suite-head { align-items: center; }
+.suite-logo { position: relative; width: 3.4rem; height: 3.4rem; flex: none; }
+.suite-logo span { position: absolute; width: 2.3rem; height: 2.3rem; border-radius: .7rem; }
+.suite-logo .rr { left: 0; top: 0; background: #b0102f; }
+.suite-logo .at { right: 0; bottom: 0; background: var(--accent); mix-blend-mode: screen; opacity: .9; }
+.suite-body { padding: 0 1.6rem 1.6rem; overflow: auto; }
+.suite-body h3 { margin: 1.6rem 0 .8rem; font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); font-weight: 600; }
+.suite-devs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+.suite-devs li { display: flex; align-items: center; gap: .7rem; }
+.suite-devs .dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--fg-3); }
+.suite-devs li[data-on="true"] .dot { background: var(--live); }
+.suite-devs .n { font-weight: 600; }
+.suite-devs small { color: var(--fg-3); }
+.suite-actions { display: flex; gap: .7rem; margin-top: 1.2rem; flex-wrap: wrap; }
+
+/* Rejilla y visor de capturas */
+.shot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: .7rem; }
+.sheet.wide { width: min(92vw, 90rem); }
+.shot-thumb { padding: 0; border-radius: .7rem; overflow: hidden; aspect-ratio: 16 / 9; background: var(--surface-2); transition: transform var(--dur); }
+.shot-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.shot-thumb.focused { box-shadow: 0 0 0 3px var(--accent); transform: scale(1.03); }
+.shot-view { background: #000; display: flex; flex-direction: column; }
+.shot-img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
+.shot-bar { display: flex; align-items: center; gap: .8rem; padding: 1rem 1.6rem; background: rgba(0, 0, 0, .7); color: #fff; }
+.shot-meta { flex: 1; display: flex; flex-direction: column; }
+.shot-meta small { color: rgba(255, 255, 255, .65); }
+
+/* Ficha de Ronrón: partidas para valorar y apuntes rápidos */
+.rr-notes li.rr-seg { border-left: 3px solid var(--live); background: var(--live-soft); }
+.rr-notes .s.todo { color: var(--live); font-weight: 700; font-size: .85rem; letter-spacing: .02em; }
+.rr-notes li.rr-memo { opacity: .92; }
+.rr-notes li.rr-memo .d { font-style: italic; }
+.rr-notes .s.cam { background: none; }
+.note.warn { color: var(--live); }
+
+/* Juegos en curso con partidas por valorar */
+.rv-todo {
+  position: absolute; right: .55rem; bottom: .55rem; min-width: 1.6rem; height: 1.6rem; padding: 0 .45rem; border-radius: .8rem;
+  display: grid; place-items: center; background: var(--live); color: #fff; font-weight: 700; font-size: .85rem; box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+}

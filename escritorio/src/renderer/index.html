@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles/layouts.css">
   <link rel="stylesheet" href="styles/panels.css">
   <link rel="stylesheet" href="styles/ronron.css">
+  <link rel="stylesheet" href="styles/suite.css">
 </head>
 <body class="booting">
   <div id="splash" aria-hidden="true">
@@ -23,6 +24,9 @@
   <header id="chrome">
     <nav id="filters" aria-label="Filtros"></nav>
     <div id="chrome-right">
+      <button class="icon-btn suite-btn off" id="btn-suite" data-nav data-zone="chrome" aria-label="Suite">
+        <svg viewBox="0 0 24 24"><rect x="7" y="2.8" width="10" height="18.4" rx="2.2"/><path d="M10.5 18h3"/></svg><i class="suite-dot"></i>
+      </button>
       <button class="icon-btn" id="btn-calendar" data-nav data-zone="chrome" aria-label="Calendario">
         <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
       </button>
@@ -59,5 +63,6 @@
   <script src="js/gamepage.js"></script>
   <script src="js/app.js"></script>
   <script src="js/ronron.js"></script>
+  <script src="js/suite.js"></script>
 </body>
 </html>

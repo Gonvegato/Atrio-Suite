@@ -221,6 +221,10 @@
     else {
       const b = baremo(item);
       el.append(h('span.rv-badge.curso', b ? String(b.general) : '·'));
+      // Partidas sin valorar: punto rojo con cuántas son
+      const rated = new Set((item.entries || []).map((e) => e.seg).filter(Boolean));
+      const todo = (item.segs || []).filter((s) => !rated.has(s.id)).length;
+      if (todo) el.append(h('span.rv-todo', { title: `${todo} por valorar` }, String(todo)));
     }
     if (item.fav) el.append(h('span.fav', A.icon('starFill')));
     return el;
@@ -322,6 +326,7 @@
         actions.push(h('button.btn.primary.gp-play', { 'data-nav': true, 'data-zone': 'gp-actions', 'data-autofocus': true, onclick: () => R.editGame(item) }, A.icon('edit'), 'Editar'));
       } else {
         actions.push(h('button.btn.primary.gp-play', { 'data-nav': true, 'data-zone': 'gp-actions', 'data-autofocus': true, onclick: () => R.addNote(item) }, A.icon('edit'), 'Apuntar'));
+        actions.push(h('button.btn.gp-btn', { 'data-nav': true, 'data-zone': 'gp-actions', onclick: () => R.memo(item) }, A.icon('note'), 'Apunte rápido'));
         actions.push(h('button.btn.gp-btn', { 'data-nav': true, 'data-zone': 'gp-actions', onclick: () => R.finish(item) }, A.icon('check'), 'Terminado'));
       }
       if (lib) actions.push(h('button.btn.gp-btn', { 'data-nav': true, 'data-zone': 'gp-actions', onclick: () => { layer.close(); A.app.launch(lib.key); } }, A.icon('play'), 'Jugar'));
@@ -349,11 +354,27 @@
           item.review ? h('div.rr-review.scroller', { 'data-nav': true, 'data-zone': 'rr-text', tabindex: '0' }, item.review) : h('p.gp-empty', 'Sin opinión escrita.'));
       } else {
         const es = [...(item.entries || [])].sort((x, y) => num(y.time) - num(x.time));
-        textBox = h('section.gp-block.rr-text', h('h3', `Apuntes${es.length ? ` · ${es.length}` : ''}`),
-          es.length ? h('ol.rr-notes.scroller', es.map((e) => h('li', { 'data-nav': true, 'data-zone': 'rr-text', onclick: () => R.addNote(item, e) },
-            h('div.rr-note-head', h('span.d', e.time ? noteFmt.format(new Date(e.time)) : ''), h('span.s', { 'data-tone': tone(num(e.general)) }, String(num(e.general)))),
-            e.note ? h('p', e.note) : null)))
-            : h('p.gp-empty', 'Todavía no hay apuntes. Pulsa Apuntar para guardar notas y comentarios provisionales.'));
+        // Partidas sin valorar primero; después apuntes con nota y apuntes rápidos, del más reciente al más antiguo
+        const rated = new Set(es.map((e) => e.seg).filter(Boolean));
+        const todo = (item.segs || []).filter((s) => !rated.has(s.id)).sort((a, b) => b.e - a.e);
+        const memos = (item.memos || []).filter((m) => m && !m.del);
+        const segLabel = (s) => s.name || (s.src === 'atrio' ? `Partida${s.pc ? ` en ${s.pc}` : ''}` : s.src === 'timer' ? 'Sesión con temporizador' : 'Parte añadida a mano');
+        const rows = [
+          ...todo.map((s) => h('li.rr-seg', { 'data-nav': true, 'data-zone': 'rr-text', onclick: () => R.addNote(item, null, { seg: s }) },
+            h('div.rr-note-head', h('span.d', `${segLabel(s)} · ${noteFmt.format(new Date(s.e))}`), h('span.s.todo', 'Valorar')),
+            h('p', `${fmtMin(s.min) || 'Menos de un minuto'} jugando. Pulsa para ponerle nota.`))),
+          ...[...es.map((e) => ({ t: num(e.time), e })), ...memos.map((m) => ({ t: m.t, m }))].sort((a, b) => b.t - a.t).map((x) => (x.e
+            ? h('li', { 'data-nav': true, 'data-zone': 'rr-text', onclick: () => R.addNote(item, x.e) },
+              h('div.rr-note-head', h('span.d', (x.e.time ? noteFmt.format(new Date(x.e.time)) : '') + (x.e.seg ? ' · partida' : x.e.part ? ` · ${x.e.part}` : '')),
+                h('span.s', { 'data-tone': tone(num(x.e.general)) }, String(num(x.e.general)))),
+              x.e.note ? h('p', x.e.note) : null)
+            : h('li.rr-memo', { 'data-nav': true, 'data-zone': 'rr-text', onclick: () => R.memo(item, x.m) },
+              h('div.rr-note-head', h('span.d', `${noteFmt.format(new Date(x.m.t))} · apunte rápido`), x.m.sh ? h('span.s.cam', '📷') : null),
+              x.m.x ? h('p', x.m.x) : null))),
+        ];
+        textBox = h('section.gp-block.rr-text', h('h3', `Apuntes${es.length + memos.length ? ` · ${es.length + memos.length}` : ''}${todo.length ? ` · ${todo.length} por valorar` : ''}`),
+          rows.length ? h('ol.rr-notes.scroller', rows)
+            : h('p.gp-empty', 'Todavía no hay apuntes. Pulsa Apuntar para guardar notas y comentarios provisionales, o Apunte rápido para una idea suelta.'));
       }
 
       root.replaceChildren(bg, h('div.gp-shade'),
@@ -595,7 +616,28 @@
   };
 
   // ---------------------------------------------------------------- Apuntes de lo que estás jugando
-  R.addNote = (play, entry) => {
+  // Apunte rápido (texto suelto, como en el móvil). memo: editar uno que ya existe
+  R.memo = (play, memo) => {
+    A.dialogs.open('center', (sheet, layer) => {
+      const note = h('textarea.input.rr-area', { 'data-nav': true, rows: '5', spellcheck: 'true', placeholder: 'Una idea, algo que no quieres olvidar…' });
+      note.value = memo ? memo.x || '' : '';
+      const save = async () => {
+        const t = memo ? memo.t : Date.now();
+        if (await edit({ op: 'memo', kind: 0, id: play.id, memo: { t, x: note.value.trim(), sh: memo ? memo.sh || '' : '' } }, 'Apunte guardado')) layer.close();
+      };
+      const del = memo ? h('button.btn.quiet.danger', {
+        'data-nav': true, onclick: async () => { if (await edit({ op: 'memo', kind: 0, id: play.id, memo: { t: memo.t }, remove: true }, 'Apunte borrado')) layer.close(); },
+      }, 'Borrar') : null;
+      sheet.append(
+        h('div.sheet-head', h('h2', `Apunte rápido · ${play.name}`)),
+        h('div.sheet-body.rr-form', A.dialogs.field('Texto', note), memo && memo.sh ? h('p.note', 'Este apunte tiene una captura: la ves en el móvil y en Imágenes/Atrio.') : null),
+        h('div.sheet-foot', del, h('span', { style: { flex: 1 } }),
+          h('button.btn', { 'data-nav': true, onclick: () => layer.close() }, 'Cancelar'),
+          h('button.btn.primary', { 'data-nav': true, onclick: save }, 'Guardar')));
+    }, { focus: 'textarea' });
+  };
+
+  R.addNote = (play, entry, opts = {}) => {
     const last = entry || (play.entries || []).slice(-1)[0] || baremo(play) || {};
     const e = { general: num(last.general, 50), gfx: num(last.gfx, 50), story: num(last.story, 50), music: num(last.music, 50), gameplay: num(last.gameplay, 50) };
     A.dialogs.open('center', (sheet, layer) => {
@@ -606,6 +648,9 @@
       const save = async () => {
         const list = [...(play.entries || [])];
         const ne = { time: entry ? entry.time : Date.now(), ...e, note: note.value.trim(), chapter: entry ? num(entry.chapter) : num(play.chapter) };
+        const segId = entry ? entry.seg : opts.seg ? opts.seg.id : '';
+        if (segId) ne.seg = segId;
+        if (entry && entry.part) ne.part = entry.part;
         const i = entry ? list.findIndex((x) => x.time === entry.time) : -1;
         if (i >= 0) list[i] = ne; else list.push(ne);
         const lib = libGameFor(play);
@@ -621,7 +666,8 @@
         },
       }, 'Borrar apunte') : null;
       sheet.append(
-        h('div.sheet-head', h('h2', entry ? `Apunte de ${play.name}` : `Apuntar · ${play.name}`)),
+        h('div.sheet-head', h('h2', opts.seg ? `Valorar la partida · ${play.name}` : entry ? `Apunte de ${play.name}` : `Apuntar · ${play.name}`),
+          opts.seg ? h('p.note', `${noteFmt.format(new Date(opts.seg.s))} – ${fmtMin(opts.seg.min) || 'menos de un minuto'}`) : null),
         h('div.sheet-body.rr-form', h('div.rr-sliders', sliders), A.dialogs.field('Nota', note)),
         h('div.sheet-foot', del, h('span', { style: { flex: 1 } }),
           h('button.btn', { 'data-nav': true, onclick: () => layer.close() }, 'Cancelar'),

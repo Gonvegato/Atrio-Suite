@@ -383,7 +383,11 @@ function edit(op) {
     const kind = Number(op.kind) || 0;
     if (op.op === 'saveGame') put(d, gk(kind), op.item);
     else if (op.op === 'deleteGame') drop(d, gk(kind), op.id);
-    else if (op.op === 'savePlay') put(d, pk(kind), op.item);
+    else if (op.op === 'savePlay') {
+      // Sin perder apuntes rápidos ni partes que hayan llegado mientras se editaba
+      const cur = (d[pk(kind)] || []).find((o) => Number(o.id) === Number(op.item.id));
+      put(d, pk(kind), cur ? unite(op.item, cur) : op.item);
+    }
     else if (op.op === 'deletePlay') drop(d, pk(kind), op.id);
     else if (op.op === 'finish') {
       // Igual que «Terminado» en Ronrón: la media de tus apuntes pasa a ser la nota y las notas, la opinión

@@ -121,6 +121,16 @@
         onclick: () => A.dialogs.artPicker(key, 'hero'),
       }, A.icon('image')),
       h('button.icon-btn.gp-icon', {
+        'data-nav': true, 'data-zone': 'gp-actions', 'aria-label': 'Capturas de este juego',
+        onclick: () => A.dialogs.open('center', async (sheet, layer) => {
+          sheet.classList.add('wide');
+          sheet.append(h('div.sheet-head', h('h2', `Capturas · ${g.name}`)),
+            h('div.sheet-body', await A.suite.grid(key)),
+            h('div.sheet-foot', h('span', { style: { flex: 1 } }), h('button.btn', { 'data-nav': true, onclick: () => layer.close() }, 'Cerrar')));
+          A.nav.focusFirst();
+        }),
+      }, A.icon('camera')),
+      h('button.icon-btn.gp-icon', {
         'data-nav': true, 'data-zone': 'gp-actions', 'aria-label': 'Más opciones',
         onclick: () => A.dialogs.options(key),
       }, A.icon('more')),

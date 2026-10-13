@@ -17,6 +17,7 @@
     ['steamgriddb', 'SteamGridDB', 'image'],
     ['ocultos', 'Juegos ocultos', 'hide'],
     ['ronron', 'Ronrón', 'heart'],
+    ['suite', 'Suite con el móvil', 'phone'],
     ['comportamiento', 'Comportamiento', 'sliders'],
   ];
 
@@ -395,7 +396,8 @@
   }
 
   const ronron = () => A.ronron.settings(() => redrawKeepFocus());
-  const BUILDERS = { apariencia, bibliotecas, mando, emuladores, propios, steamgriddb, ocultos, ronron, comportamiento };
+  const suite = () => A.suite.settings(() => redrawKeepFocus());
+  const BUILDERS = { apariencia, bibliotecas, mando, emuladores, propios, steamgriddb, ocultos, ronron, suite, comportamiento };
 
   function draw() {
     for (const b of navBox.querySelectorAll('[data-sec]')) b.setAttribute('aria-current', String(b.dataset.sec === section));
