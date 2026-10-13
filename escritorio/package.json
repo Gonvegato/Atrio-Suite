@@ -1,0 +1,69 @@
+{
+  "name": "atrio",
+  "productName": "Atrio",
+  "version": "0.10.3",
+  "description": "Launcher minimalista para tus juegos (Linux y Windows)",
+  "main": "src/main/main.js",
+  "author": "Gonzalo",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --linux AppImage",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "es.gonzalo.atrio",
+    "productName": "Atrio",
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!src/**/*.md"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Game",
+      "icon": "build/icon.png",
+      "artifactName": "Atrio-${version}-x86_64.AppImage",
+      "executableName": "atrio",
+      "desktop": {
+        "entry": {
+          "Name": "Atrio",
+          "Comment": "Launcher minimalista para tus juegos",
+          "Categories": "Game;"
+        }
+      },
+      "syncDesktopName": true
+    },
+    "electronVersion": "44.7.0",
+    "publish": null,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "Atrio-${version}-Instalador.${ext}",
+      "executableName": "Atrio"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Atrio",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "desktopName": "atrio.desktop"
+}

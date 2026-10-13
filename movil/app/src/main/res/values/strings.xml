@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sc_add_game">Añadir juego</string>
+    <string name="sc_add_game_long">Añadir un juego a tu lista</string>
+    <string name="sc_add_book">Añadir libro</string>
+    <string name="sc_add_book_long">Añadir un libro a tu lista</string>
+    <string name="sc_next_game">Siguiente</string>
+    <string name="sc_next_game_long">¿Qué juego viene ahora?</string>
+    <string name="sc_stats">Estadísticas</string>
+    <string name="sc_stats_long">Estadísticas de juegos</string>
+</resources>

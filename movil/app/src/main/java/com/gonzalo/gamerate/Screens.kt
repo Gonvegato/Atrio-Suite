@@ -1,0 +1,821 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
+package com.gonzalo.gamerate
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PhotoLibrary
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Translate
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Casino
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import kotlin.math.roundToInt
+
+private val SortNames = listOf("Nota", "Recientes", "Nombre", "Fecha de fin")
+
+private fun matches(q: String, vararg fields: String): Boolean {
+    if (q.isBlank()) return true
+    val t = q.trim().lowercase()
+    return fields.any { it.lowercase().contains(t) }
+}
+
+/** Botón flotante de añadir. */
+@Composable
+private fun AddButton(modifier: Modifier, onAdd: () -> Unit) {
+    FloatingActionButton(
+        onAdd, modifier, containerColor = Charcoal, contentColor = Crudo, shape = CircleShape,
+        elevation = FloatingActionButtonDefaults.elevation(2.dp, 2.dp, 2.dp, 2.dp)
+    ) { Icon(Icons.Rounded.Add, "Añadir") }
+}
+
+@Composable
+private fun EmptyNote(text: String) {
+    Text(text, color = UiSoft, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 8.dp).pill(18, 16, 12))
+}
+
+@Composable
+fun Home(games: List<Game>, kind: Kind, onMenu: () -> Unit, onAdd: (() -> Unit)?, partner: PartnerSide?, onOpen: (Game) -> Unit) {
+    var query by remember { mutableStateOf("") }
+    var sort by remember { mutableStateOf(0) }
+    var favOnly by remember { mutableStateOf(false) }
+    val shown = remember(games, query, sort, favOnly) {
+        val f = games.filter { (!favOnly || it.fav) && matches(query, it.name, it.creator, it.platform) }
+        when (sort) {
+            1 -> f.sortedByDescending { it.activity }
+            2 -> f.sortedBy { it.name.lowercase() }
+            3 -> f.sortedByDescending { it.end }
+            else -> f.sortedByDescending { it.general }
+        }
+    }
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)) {
+            TopBar(kind.title, onMenu, "Valorados") {
+                IconPill(if (favOnly) Icons.Rounded.Star else Icons.Rounded.StarBorder, "Solo favoritos", favOnly) { favOnly = !favOnly }
+            }
+            if (games.isNotEmpty()) {
+                SearchPill(query, "Buscar por nombre, ${kind.creatorWord.lowercase()} o ${kind.platformWord.lowercase()}", Modifier.fillMaxWidth()) { query = it }
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SortNames.forEachIndexed { i, s -> SoftChip(s, sort == i) { sort = i } }
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+            if (games.isEmpty()) {
+                EmptyNote(if (onAdd == null) "No hay nada valorado todavía." else "Aún no has valorado nada. Pulsa + para añadir el primero.")
+            } else if (shown.isEmpty()) {
+                EmptyNote("No hay nada que coincida.")
+            }
+            LazyVerticalGrid(
+                GridCells.Adaptive(150.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(22.dp),
+                contentPadding = PaddingValues(bottom = 100.dp)
+            ) {
+                itemsIndexed(shown, key = { _, g -> g.id }) { i, g ->
+                    FlipCard(
+                        enabled = partner != null, onClick = { onOpen(g) },
+                        modifier = Modifier.appear(200 + i * 50, i < 12),
+                        front = {
+                            Column {
+                                Box {
+                                    Cover(
+                                        g.cover, g.name,
+                                        Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(10.dp)).background(Sand)
+                                            .border(1.dp, Line, RoundedCornerShape(10.dp))
+                                    )
+                                    if (g.fav) {
+                                        Box(
+                                            Modifier.align(Alignment.TopEnd).padding(6.dp).size(24.dp).background(Crudo, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) { Icon(Icons.Rounded.Star, null, tint = Gold, modifier = Modifier.size(15.dp)) }
+                                    }
+                                    val r = partner?.reactsToMe?.get(g.id)
+                                    if (r != null) {
+                                        Box(
+                                            Modifier.align(Alignment.TopStart).padding(6.dp).size(24.dp).background(Crudo, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) { Text(r, fontSize = 12.sp) }
+                                    }
+                                }
+                                Spacer(Modifier.height(10.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(g.name, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 18.sp)
+                                        if (g.creator.isNotBlank()) Text(g.creator, color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
+                                    Spacer(Modifier.width(6.dp))
+                                    Ring(g.general, ColGeneral, 34.dp)
+                                }
+                            }
+                        },
+                        back = { partner?.let { PartnerFace(it, g.id, kind) } }
+                    )
+                }
+            }
+        }
+        if (onAdd != null) AddButton(Modifier.align(Alignment.BottomEnd).padding(20.dp), onAdd)
+    }
+}
+
+fun statusOrder(status: Int): Int = when (status) {
+    1 -> 0
+    0 -> 1
+    else -> 2
+}
+
+@Composable
+fun PlayingHome(
+    plays: List<Play>, kind: Kind, sessId: Long, onMenu: () -> Unit, onAdd: (() -> Unit)?, partner: PartnerSide?,
+    onStartPlay: (Play) -> Unit, onOpen: (Play) -> Unit
+) {
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf(-1) }
+    var wheel by remember { mutableStateOf(false) }
+    val shown = remember(plays, query, filter) {
+        plays.filter { (filter == -1 || it.status == filter) && matches(query, it.name, it.creator, it.platform) }
+            .sortedWith(compareBy<Play> { statusOrder(it.status) }.thenByDescending { it.activity })
+    }
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)) {
+            TopBar(kind.title, onMenu, kind.statuses[1]) {
+                if (onAdd != null) IconPill(Icons.Rounded.Casino, "¿Qué empiezo?") { wheel = true }
+            }
+            if (plays.isNotEmpty()) {
+                SearchPill(query, "Buscar", Modifier.fillMaxWidth()) { query = it }
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SoftChip("Todos", filter == -1) { filter = -1 }
+                    SoftChip(kind.statuses[1], filter == 1) { filter = 1 }
+                    SoftChip(kind.statuses[0], filter == 0) { filter = 0 }
+                    SoftChip(kind.statuses[2], filter == 2) { filter = 2 }
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+            if (plays.isEmpty()) {
+                EmptyNote(
+                    when {
+                        onAdd == null -> "No hay nada aquí todavía."
+                        kind.custom -> "Añade con + lo que quieras empezar."
+                        kind.isBook -> "Añade con + los libros que quieras leer."
+                        else -> "Añade con + los juegos que quieras pasarte."
+                    }
+                )
+            } else if (shown.isEmpty()) {
+                EmptyNote("No hay nada que coincida.")
+            }
+            LazyVerticalGrid(
+                GridCells.Adaptive(150.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(22.dp),
+                contentPadding = PaddingValues(bottom = 100.dp)
+            ) {
+                itemsIndexed(shown, key = { _, p -> p.id }) { i, p ->
+                    val bc = when (p.status) { 1 -> ColGeneral; 2 -> Muted; else -> Line }
+                    val st = kind.statuses[p.status.coerceIn(0, 2)]
+                    val pct = p.percent()
+                    val extra = when {
+                        pct != null -> " · $pct %"
+                        kind.isBook && p.chapter > 0 -> " · cap. ${p.chapter}"
+                        !kind.isBook && p.minutes > 0 -> " · ${hoursText(p.minutes)}"
+                        else -> ""
+                    }
+                    FlipCard(
+                        enabled = partner != null, onClick = { onOpen(p) },
+                        modifier = Modifier.appear(200 + i * 50, i < 12),
+                        front = {
+                            Column {
+                                Box {
+                                    Cover(p.cover, p.name,
+                                        Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(10.dp)).background(Sand)
+                                            .border(1.dp, Line, RoundedCornerShape(10.dp)),
+                                        alpha = if (p.status == 2) 0.55f else 1f)
+                                    if (sessId == p.id) {
+                                        Text(
+                                            "En sesión", color = Crudo, fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.align(Alignment.BottomCenter).padding(10.dp)
+                                                .background(Charcoal, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 3.dp)
+                                        )
+                                    }
+                                    val r = partner?.reactsToMe?.get(p.id)
+                                    if (r != null) {
+                                        Box(
+                                            Modifier.align(Alignment.TopStart).padding(6.dp).size(24.dp).background(Crudo, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) { Text(r, fontSize = 12.sp) }
+                                    }
+                                }
+                                Spacer(Modifier.height(10.dp))
+                                Text(p.name, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(Modifier.size(6.dp).background(bc, CircleShape))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("$st · ${p.entries.size} ${if (p.entries.size == 1) "apunte" else "apuntes"}$extra", color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                            }
+                        },
+                        back = { partner?.let { PartnerFace(it, p.id, kind) } }
+                    )
+                }
+            }
+        }
+        if (onAdd != null) AddButton(Modifier.align(Alignment.BottomEnd).padding(20.dp), onAdd)
+    }
+    if (wheel) {
+        val pool = plays.filter { it.status == 0 }.ifEmpty { plays.filter { it.status != 2 } }
+        val ps = partner
+        val shared = if (ps == null) emptyList() else pool.filter { mine -> ps.plays.any { it.id == mine.id && it.status == 0 } }
+        WheelDialog(pool, shared, partner?.name, kind, { p -> wheel = false; onStartPlay(p) }, { p -> wheel = false; onOpen(p) }) { wheel = false }
+    }
+}
+
+/** Ruleta: elige al azar qué empezar de tu lista. */
+@Composable
+fun WheelDialog(
+    all: List<Play>, shared: List<Play>, partnerName: String?, kind: Kind,
+    onStart: (Play) -> Unit, onOpen: (Play) -> Unit, onDismiss: () -> Unit
+) {
+    var together by remember { mutableStateOf(false) }
+    val pool = if (together && shared.isNotEmpty()) shared else all
+    var idx by remember { mutableStateOf(0) }
+    var spin by remember { mutableStateOf(0) }
+    var done by remember { mutableStateOf(false) }
+    LaunchedEffect(spin, together) {
+        idx = 0
+        if (pool.isEmpty()) return@LaunchedEffect
+        done = false
+        var d = 45L
+        val turns = 18 + (0 until pool.size.coerceAtLeast(1)).random()
+        repeat(turns) {
+            idx = (idx + 1) % pool.size
+            delay(d)
+            d += 14L
+        }
+        done = true
+    }
+    val sc by animateFloatAsState(if (done) 1.06f else 1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy), label = "ruleta")
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (done) "¡Te toca!" else "Girando…", fontFamily = Display) },
+        text = {
+            if (pool.isEmpty()) {
+                Text("Añade cosas a tu lista (${kind.statuses[0]}) y la ruleta elegirá por ti.")
+            } else {
+                val p = pool[idx.coerceIn(0, pool.size - 1)]
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (partnerName != null && shared.isNotEmpty()) {
+                        SoftChip("En común (${shared.size})", together, onPanel = true) { together = !together }
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    AsyncImage(
+                        p.cover, p.name,
+                        Modifier.width(170.dp).aspectRatio(2f / 3f).graphicsLayer { scaleX = sc; scaleY = sc }
+                            .shadow(4.dp, RoundedCornerShape(12.dp)).clip(RoundedCornerShape(12.dp)).background(Sand),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(p.name, fontFamily = Display, fontSize = 20.sp, textAlign = TextAlign.Center)
+                    if (p.creator.isNotBlank()) Text(p.creator, color = Muted, fontSize = 13.sp)
+                    if (done) {
+                        Spacer(Modifier.height(8.dp))
+                        Text("Elegido entre ${pool.size}.", color = Muted, fontSize = 12.sp)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (pool.isNotEmpty() && done) {
+                TextButton({ onStart(pool[idx.coerceIn(0, pool.size - 1)]) }) { Text("¡A por él!") }
+            }
+        },
+        dismissButton = {
+            Row {
+                if (pool.isNotEmpty() && done) {
+                    TextButton({ onOpen(pool[idx.coerceIn(0, pool.size - 1)]) }) { Text("Ver ficha") }
+                    TextButton({ spin++ }) { Text("Otra vez") }
+                }
+                TextButton(onDismiss) { Text("Cerrar") }
+            }
+        },
+        shape = RoundedCornerShape(24.dp)
+    )
+}
+
+@Composable
+private fun SettingsSection(title: String, delay: Int, content: @Composable ColumnScope.() -> Unit) {
+    Panel(Modifier.padding(bottom = 14.dp).appear(delay), title, content)
+}
+
+@Composable
+fun SettingsScreen(
+    key: String, look: Look, onLook: (Look) -> Unit, themeMode: Int, onTheme: (Int) -> Unit,
+    goalGames: Int, goalBooks: Int, onGoal: (Int, Int) -> Unit,
+    onSaveKey: (String) -> Unit, onExport: () -> Unit, onImport: () -> Unit, onUndoImport: (() -> Unit)?,
+    rawgKey: String, igdbId: String, igdbSecret: String, onSaveServices: (String, String, String) -> Unit,
+    tmdbKey: String = "", onSaveTmdb: (String) -> Unit = {},
+    studioMsg: String, onFillStudios: () -> Unit,
+    driveName: String?, driveInfo: String, onDriveLink: () -> Unit, onDriveRestore: () -> Unit,
+    onDriveNow: () -> Unit, onDriveUnlink: () -> Unit,
+    couple: @Composable () -> Unit,
+    importMsg: String = "", onGoodreads: () -> Unit = {}, onBookmory: () -> Unit = {},
+    steamKey: String = "", steamUser: String = "", onSteam: (String, String) -> Unit = { _, _ -> },
+    onBack: () -> Unit
+) {
+    var k by remember { mutableStateOf(key) }
+    var sk by remember { mutableStateOf(steamKey) }
+    var su by remember { mutableStateOf(steamUser) }
+    var iid by remember { mutableStateOf(igdbId) }
+    var isec by remember { mutableStateOf(igdbSecret) }
+    var rk by remember { mutableStateOf(rawgKey) }
+    var tk by remember { mutableStateOf(tmdbKey) }
+    var confirm by remember { mutableStateOf(false) }
+    val year = LocalDate.now().year
+    Column(Modifier.fillMaxSize().imePadding().wrapContentWidth().widthIn(max = 760.dp).statusBarsPadding().verticalScroll(rememberScrollState()).padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            BackButton(onBack)
+            Column {
+                Overline("Ronrón")
+                Text("Ajustes", fontFamily = Display, fontSize = 26.sp, lineHeight = 30.sp)
+            }
+        }
+        Spacer(Modifier.height(18.dp))
+
+        SettingsSection("Apariencia", 100) {
+            Text("Tema", fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                ThemeNames.forEachIndexed { i, n -> SoftChip(n, themeMode == i, onPanel = true) { onTheme(i) } }
+            }
+            Text("Lo de tu pareja se ve siempre con el tema contrario al tuyo.", color = UiSoft, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+            Spacer(Modifier.height(14.dp))
+            Text("Fondo", fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                listOf(4, 0, 1, 2, 3).forEach { i ->
+                    val n = PatternNames[i]
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.pop { onLook(look.copy(pattern = i)) }) {
+                        Box(
+                            Modifier.size(64.dp, 48.dp).clip(RoundedCornerShape(12.dp))
+                                .pattern(i, Color(look.menu), look.intensity)
+                                .border(if (look.pattern == i) 3.dp else 1.dp, if (look.pattern == i) Charcoal else Sand, RoundedCornerShape(12.dp))
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(n, fontSize = 12.sp, fontWeight = if (look.pattern == i) FontWeight.SemiBold else FontWeight.Normal)
+                    }
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            Text("Intensidad", fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                IntensityNames.forEachIndexed { i, n -> SoftChip(n, look.intensity == i, onPanel = true) { onLook(look.copy(intensity = i)) } }
+            }
+            Spacer(Modifier.height(12.dp))
+            ColorRow("Menú principal", look.menu) { onLook(look.copy(menu = it)) }
+            ColorRow(GAMES.title, look.games) { onLook(look.copy(games = it)) }
+            ColorRow(BOOKS.title, look.books) { onLook(look.copy(books = it)) }
+            Spacer(Modifier.height(6.dp))
+            TextButton({ onLook(Look()) }) { Text("Volver al aspecto por defecto", color = Muted) }
+        }
+
+        SettingsSection("Objetivos de $year", 180) {
+            Text("¿Cuántos quieres terminar este año? Verás el progreso en el menú y en Estadísticas. 0 = sin objetivo.", color = UiSoft)
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(GAMES.title, Modifier.weight(1f), fontWeight = FontWeight.Medium)
+                Stepper(goalGames, "", { onGoal(0, goalGames - 1) }, { onGoal(0, goalGames + 1) })
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(BOOKS.title, Modifier.weight(1f), fontWeight = FontWeight.Medium)
+                Stepper(goalBooks, "", { onGoal(1, goalBooks - 1) }, { onGoal(1, goalBooks + 1) })
+            }
+        }
+
+        SettingsSection("Cuenta y pareja", 260) { couple() }
+
+        SettingsSection("SteamGridDB", 340) {
+            OutlinedTextField(k, { k = it }, label = { Text("API key de SteamGridDB") }, singleLine = true,
+                shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+            Text("Se genera en tu perfil de steamgriddb.com, en Preferencias > API. Se guarda solo en este dispositivo.", color = UiSoft, modifier = Modifier.padding(vertical = 8.dp))
+            Button({ onSaveKey(k) }, shape = RoundedCornerShape(50)) { Text("Guardar clave") }
+        }
+
+        SettingsSection("Servicios", 380) {
+            Text("RAWG (estudios y recomendaciones de juegos)", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Con una clave gratuita de rawg.io/apidocs, la pestaña Siguiente te propone juegos y se detectan mejor los estudios. " +
+                    "Sin ella, los estudios se buscan en Wikidata y la pestaña Siguiente solo funciona con libros.",
+                color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)
+            )
+            OutlinedTextField(rk, { rk = it }, label = { Text("Clave de RAWG") }, singleLine = true,
+                shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(12.dp))
+            Text("IGDB (cuánto dura cada juego)", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Da el tiempo que tardan sus jugadores en pasarse cada juego: deprisa, normal y al 100 %. Es gratis y va con una cuenta de Twitch " +
+                    "(con verificación en dos pasos): en dev.twitch.tv/console registra una aplicación con cualquier nombre, " +
+                    "URL de redirección «http://localhost», categoría «Application Integration» y tipo «Confidencial». Copia aquí su Client ID y un secreto nuevo. " +
+                    "Sin esto se usa la media de horas de RAWG, o la pones a mano.",
+                color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)
+            )
+            OutlinedTextField(iid, { iid = it }, label = { Text("Client ID de Twitch") }, singleLine = true,
+                shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(isec, { isec = it }, label = { Text("Secreto (Client Secret)") }, singleLine = true,
+                shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            Button({ onSaveServices(rk, iid, isec) }, shape = RoundedCornerShape(50)) { Text("Guardar claves") }
+            Spacer(Modifier.height(16.dp))
+            Text("TMDB (películas)", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Para buscar películas con sus pósters en español, sus fondos y su director. Es gratis: crea una cuenta en themoviedb.org " +
+                    "desde el ordenador, entra en los ajustes de tu cuenta → API y pide una clave para uso personal. " +
+                    "Pega aquí la «API Key» o el «API Read Access Token» (vale cualquiera de los dos). Las series no necesitan clave.",
+                color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)
+            )
+            OutlinedTextField(tk, { tk = it }, label = { Text("Clave de TMDB") }, singleLine = true,
+                shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            Button({ onSaveTmdb(tk) }, shape = RoundedCornerShape(50)) { Text("Guardar clave de TMDB") }
+            Spacer(Modifier.height(12.dp))
+            Text("Estudios que faltan", fontWeight = FontWeight.SemiBold)
+            Text("Busca en internet el estudio de todos tus juegos que no lo tengan.", color = UiSoft, fontSize = 13.sp)
+            Spacer(Modifier.height(6.dp))
+            OutlinedButton(onFillStudios, shape = RoundedCornerShape(50)) { Text("Rellenar estudios") }
+            if (studioMsg.isNotEmpty()) Text(studioMsg, color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+        }
+
+        SettingsSection("Traer de otras apps", 390) {
+            Text("Goodreads", fontWeight = FontWeight.SemiBold)
+            Text(
+                "En goodreads.com: Mis libros → Importar y exportar → Exportar biblioteca. Descarga el CSV y elígelo aquí. " +
+                    "Los leídos pasan a valorados (cada estrella son 20 puntos), los que estás leyendo a Leyendo y el resto a En lista. " +
+                    "Lo que ya tengas no se duplica.",
+                color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)
+            )
+            OutlinedButton(onGoodreads, shape = RoundedCornerShape(50)) { Text("Importar CSV de Goodreads") }
+            if (importMsg.isNotEmpty() && "Steam" !in importMsg && "Bookmory" !in importMsg) ImportNote(importMsg)
+            Spacer(Modifier.height(14.dp))
+            Text("Bookmory", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Exporta tus datos desde Bookmory (un .zip con un .txt por libro) y elige aquí ese .zip tal cual. " +
+                    "Los terminados pasan a Leídos con tu nota (cada estrella son 20 puntos), tus fechas, favoritos, comentarios, relecturas y citas; " +
+                    "los que estás leyendo o tienes en pausa, a Leyendo, y los de leer más tarde, a En lista. " +
+                    "Lo que ya tengas no se duplica: solo se completa lo que le falte, sin tocar tus notas. Se puede deshacer en Copia de seguridad.",
+                color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)
+            )
+            OutlinedButton(onBookmory, shape = RoundedCornerShape(50)) { Text("Importar ZIP de Bookmory") }
+            if (importMsg.isNotEmpty() && "Bookmory" in importMsg) ImportNote(importMsg)
+            Spacer(Modifier.height(14.dp))
+            Text("Horas de Steam", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Copia las horas jugadas de tu biblioteca de Steam en todos tus juegos, también los valorados (solo si Steam tiene más). " +
+                    "Una vez guardado, se actualiza solo al abrir la app. " +
+                    "Necesitas una clave en steamcommunity.com/dev/apikey y que los detalles de juego de tu perfil sean públicos.",
+                color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)
+            )
+            OutlinedTextField(sk, { sk = it }, label = { Text("Clave de Steam") }, singleLine = true,
+                shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(su, { su = it }, label = { Text("Tu perfil (URL, nombre o SteamID64)") }, singleLine = true,
+                shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton({ onSteam(sk, su) }, shape = RoundedCornerShape(50), enabled = sk.isNotBlank() && su.isNotBlank()) { Text("Traer horas de Steam") }
+            if (importMsg.isNotEmpty() && "Steam" in importMsg) ImportNote(importMsg)
+        }
+
+        SettingsSection("Google Drive", 400) {
+            if (driveName == null) {
+                Text(
+                    "Vincula un archivo de tu Google Drive y cada cambio se guardará ahí solo. " +
+                        "Al pulsar «Vincular», en el selector abre el menú de la izquierda, elige Drive y guarda el archivo.",
+                    color = UiSoft, fontSize = 13.sp
+                )
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onDriveLink, shape = RoundedCornerShape(50)) { Text("Vincular") }
+                    OutlinedButton(onDriveRestore, shape = RoundedCornerShape(50)) { Text("Recuperar de Drive") }
+                }
+                Text(
+                    "Si has reinstalado la app: «Recuperar de Drive», elige tu archivo y se cargan tus datos (y queda vinculado otra vez).",
+                    color = UiSoft, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp)
+                )
+            } else {
+                Text("Vinculado con $driveName", fontWeight = FontWeight.SemiBold)
+                if (driveInfo.isNotEmpty()) Text(driveInfo, color = UiSoft, fontSize = 13.sp)
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onDriveNow, shape = RoundedCornerShape(50)) { Text("Guardar ahora") }
+                    OutlinedButton(onDriveUnlink, shape = RoundedCornerShape(50)) { Text("Desvincular") }
+                }
+                TextButton(onDriveRestore) { Text("Recuperar desde un archivo de Drive", color = Muted) }
+            }
+        }
+
+        SettingsSection("Copia de seguridad", 420) {
+            Text(
+                "Exporta todo lo guardado (videojuegos y libros, valorados y en progreso, notas, apuntes y fechas) a un archivo. " +
+                    "El archivo incluye todas tus claves (SteamGridDB, RAWG, IGDB, Steam y TMDB), igual que la copia de Drive y la de la nube. Al importar, se sustituye todo lo que tienes ahora.",
+                color = UiSoft, modifier = Modifier.padding(bottom = 8.dp)
+            )
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button({ onExport() }, shape = RoundedCornerShape(50)) { Text("Exportar datos") }
+                OutlinedButton({ confirm = true }, shape = RoundedCornerShape(50)) { Text("Importar datos") }
+            }
+            if (onUndoImport != null) {
+                Spacer(Modifier.height(6.dp))
+                TextButton(onUndoImport) { Text("Deshacer la última importación", color = ColGeneral) }
+            }
+        }
+
+        SettingsSection("Acerca de", 500) {
+            Text("Ronrón 3.6", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Portadas de juegos: SteamGridDB. Libros: Open Library y Google Books. Películas: TMDB (este producto usa la API de TMDB, pero TMDB no lo respalda ni lo certifica). Series: TVmaze (CC BY-SA). Recomendaciones: RAWG. Letras: Fraunces e Inter (SIL Open Font License).",
+                color = UiSoft, fontSize = 13.sp
+            )
+        }
+        Spacer(Modifier.navigationBarsPadding().height(16.dp))
+    }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text("¿Importar datos?", fontFamily = Display) },
+            text = { Text("Se sustituirán todos tus datos actuales por los del archivo que elijas. Podrás deshacerlo justo después.") },
+            confirmButton = { TextButton({ confirm = false; onImport() }) { Text("Elegir archivo") } },
+            dismissButton = { TextButton({ confirm = false }) { Text("Cancelar") } },
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+}
+
+@Composable
+private fun ColorRow(label: String, value: Int, onPick: (Int) -> Unit) {
+    Text(label, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+    Spacer(Modifier.height(6.dp))
+    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Swatches.forEach { (_, c) ->
+            val on = c == value
+            Box(
+                Modifier.pop { onPick(c) }.size(36.dp).background(Color(c), CircleShape)
+                    .border(if (on) 3.dp else 0.dp, if (on) Charcoal else Color.Transparent, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                if (on) Icon(Icons.Rounded.Check, null, tint = Color.White, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchScreen(
+    needsKey: Boolean, key: String, owned: (Long) -> String?,
+    search: suspend (String) -> List<Hit>, onPick: (Hit) -> Unit, onBack: () -> Unit,
+    title: String = if (needsKey) "Videojuegos" else "Libros",
+    hint: String = if (needsKey) "Título del juego" else "Título o autor",
+    keyMsg: String = "Antes de buscar, añade tu API key en Ajustes.",
+    /** Categorías propias con buscador: si no aparece, añadirlo a mano. */
+    onManual: (() -> Unit)? = null,
+    manualText: String = "¿No aparece? Añádelo a mano con una foto"
+) {
+    var q by remember { mutableStateOf("") }
+    var results by remember { mutableStateOf<List<Hit>>(emptyList()) }
+    var msg by remember { mutableStateOf("") }
+    // Pulsar "Buscar" en el teclado fuerza la búsqueda sin esperar.
+    var now by remember { mutableStateOf(0) }
+    var lastNow by remember { mutableStateOf(0) }
+    // Busca mientras escribes, tras una pausa breve. Al cambiar el texto se cancela la búsqueda anterior,
+    // así una respuesta vieja nunca pisa a la nueva.
+    LaunchedEffect(q, now) {
+        val forced = now != lastNow
+        lastNow = now
+        val term = q.trim()
+        if (term.isEmpty() || (needsKey && key.isBlank())) return@LaunchedEffect
+        if (!forced) {
+            if (term.length < 3) return@LaunchedEffect
+            kotlinx.coroutines.delay(550)
+        }
+        try {
+            msg = "Buscando…"
+            val r = search(term)
+            results = r
+            msg = if (r.isEmpty()) "Sin resultados" else ""
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) { msg = e.message ?: "Error de conexión" }
+    }
+    Column(Modifier.fillMaxSize().imePadding().wrapContentWidth().widthIn(max = 760.dp).statusBarsPadding().padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            BackButton(onBack)
+            Column {
+                Overline(title)
+                Text("Añadir", fontFamily = Display, fontSize = 26.sp, lineHeight = 30.sp)
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        if (needsKey && key.isBlank()) {
+            Text(keyMsg, color = UiSoft, modifier = Modifier.pill())
+            Spacer(Modifier.height(8.dp))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SearchPill(q, hint, Modifier.weight(1f), onSearch = { now++ }) { q = it }
+        }
+        if (onManual != null) {
+            TextButton(onManual) { Text(manualText, color = UiSoft, fontSize = 13.sp) }
+        }
+        if (msg.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(msg, color = UiSoft, modifier = Modifier.pill())
+        }
+        Spacer(Modifier.height(8.dp))
+        LazyColumn(contentPadding = PaddingValues(bottom = 40.dp)) {
+            itemsIndexed(results) { i, h ->
+                val have = owned(h.id)
+                if (i > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(Line))
+                Row(
+                    Modifier.fillMaxWidth()
+                        .pop { onPick(h) }
+                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (h.cover.isNotEmpty()) {
+                        MiniCover(h.cover, 40.dp)
+                        Spacer(Modifier.width(12.dp))
+                    }
+                    Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
+                        Text(h.name, fontWeight = FontWeight.Medium)
+                        if (h.sub.isNotEmpty()) Text(h.sub, color = UiSoft, fontSize = 12.sp)
+                    }
+                    if (have != null) {
+                        Text(have, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Muted,
+                            modifier = Modifier.border(1.dp, Line, RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 4.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ArtScreen(
+    game: Game, hero: Boolean, load: suspend () -> List<Pair<String, String>>, onPick: (String) -> Unit, onSkip: () -> Unit,
+    onBack: () -> Unit, onGallery: (() -> Unit)? = null,
+    /** Libros: buscar portadas con otro título (p. ej. el original en inglés). */
+    search: (suspend (String) -> List<Pair<String, String>>)? = null,
+    /** Pasa el título al inglés: (título, de dónde sale). */
+    translate: (suspend (String) -> Pair<String, String>?)? = null
+) {
+    var list by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    var msg by remember { mutableStateOf("Cargando…") }
+    var query by remember { mutableStateOf(game.name) }
+    var searched by remember { mutableStateOf("") }
+    var translating by remember { mutableStateOf(false) }
+    var from by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val focus = androidx.compose.ui.platform.LocalFocusManager.current
+    LaunchedEffect(game.id, hero) {
+        try {
+            var l = load()
+            if (!hero && game.cover.isNotBlank() && l.none { it.second == game.cover }) {
+                l = listOf(game.cover to game.cover) + l
+            }
+            list = l
+            msg = if (l.isEmpty()) {
+                if (search != null) "No hay portadas con este título. Prueba con el título original."
+                else if (onGallery != null) "Elige una foto de tu galería." else "No hay imágenes disponibles."
+            } else ""
+        } catch (e: Exception) { msg = e.message ?: "Error de conexión" }
+    }
+    fun runSearch() {
+        val q = query.trim()
+        if (search == null || q.isEmpty()) return
+        focus.clearFocus()
+        searched = q
+        msg = "Buscando «$q»…"
+        scope.launch {
+            try {
+                val l = search(q)
+                // La portada que ya tiene se queda la primera, por si no quieres cambiarla.
+                list = (if (game.cover.isNotBlank()) listOf(game.cover to game.cover) else emptyList()) +
+                    l.filter { it.second != game.cover }
+                msg = if (l.isEmpty()) "No hay portadas para «$q». Prueba con otro título." else ""
+            } catch (e: Exception) { msg = e.message ?: "Error de conexión" }
+        }
+    }
+    Column(Modifier.fillMaxSize().statusBarsPadding().padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BackButton(onBack)
+            if (onGallery != null) ActionPill(Icons.Rounded.PhotoLibrary, "Desde tu galería", dark = true) { onGallery() }
+            if (hero) Text("Omitir fondo", color = Charcoal, fontWeight = FontWeight.Medium, fontSize = 14.sp,
+                modifier = Modifier.pop(onSkip).border(1.dp, Line, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 9.dp))
+        }
+        Spacer(Modifier.height(8.dp))
+        Overline(game.name, Modifier.padding(start = 4.dp, top = 4.dp))
+        Text(if (hero) "Elige el fondo" else "Elige la portada",
+            fontFamily = Display, fontSize = 26.sp, modifier = Modifier.padding(start = 4.dp))
+        Spacer(Modifier.height(10.dp))
+        if (search != null && !hero) {
+            // Solo cambia lo que se busca: el libro conserva su nombre.
+            OutlinedTextField(
+                query, { query = it }, Modifier.fillMaxWidth(),
+                label = { Text("Buscar portada por título") }, singleLine = true, shape = RoundedCornerShape(14.dp),
+                placeholder = { Text("Prueba con el título original", color = UiSoft) },
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Search),
+                keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSearch = { runSearch() }),
+                trailingIcon = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton({ runSearch() }) { Icon(Icons.Rounded.Search, "Buscar") }
+                        if (translate != null) {
+                            // Al inglés: busca el título original y, con él, las portadas.
+                            IconButton(
+                                {
+                                    val q = query.trim()
+                                    if (q.isNotEmpty() && !translating) {
+                                        translating = true
+                                        focus.clearFocus()
+                                        msg = "Pasando «$q» al inglés…"
+                                        scope.launch {
+                                            val r = try { translate(q) } catch (e: Exception) { null }
+                                            translating = false
+                                            if (r == null) {
+                                                msg = "No he podido pasarlo al inglés. Escribe el título original a mano."
+                                            } else {
+                                                query = r.first
+                                                from = "«$q» → «${r.first}» (${r.second})."
+                                                runSearch()
+                                            }
+                                        }
+                                    }
+                                },
+                                Modifier.padding(end = 4.dp)
+                            ) {
+                                if (translating) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                                else Icon(Icons.Rounded.Translate, "Traducir al inglés")
+                            }
+                        }
+                    }
+                }
+            )
+            if (from.isNotEmpty()) Text(from, color = UiSoft, fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp, top = 6.dp))
+            if (searched.isNotEmpty()) Text(
+                "Resultados de «$searched». El libro sigue llamándose «${game.name}».",
+                color = UiSoft, fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp, top = 6.dp)
+            )
+            Spacer(Modifier.height(10.dp))
+        }
+        if (msg.isNotEmpty()) Text(msg, color = UiSoft, modifier = Modifier.pill())
+        LazyVerticalGrid(GridCells.Adaptive(if (hero) 320.dp else 110.dp), contentPadding = PaddingValues(bottom = 40.dp)) {
+            itemsIndexed(list) { i, c ->
+                AsyncImage(c.first, null,
+                    Modifier.appear(150 + (i % 12) * 40, i < 12).padding(4.dp).fillMaxWidth().aspectRatio(if (hero) 3.1f else 2f / 3f)
+                        .clip(RoundedCornerShape(12.dp)).background(Sand).clickable { onPick(c.second) },
+                    contentScale = ContentScale.Crop)
+            }
+        }
+    }
+}
+
+/** Cómo va una importación, justo debajo del botón que la empezó. */
+@Composable
+private fun ImportNote(msg: String) =
+    Text(msg, color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))

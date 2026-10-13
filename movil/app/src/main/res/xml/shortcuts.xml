@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="add_game" android:enabled="true" android:icon="@drawable/sc_add"
+        android:shortcutShortLabel="@string/sc_add_game" android:shortcutLongLabel="@string/sc_add_game_long">
+        <intent android:action="android.intent.action.VIEW"
+            android:targetPackage="com.gonzalo.gamerate"
+            android:targetClass="com.gonzalo.gamerate.MainActivity">
+            <extra android:name="go" android:value="add_game" />
+        </intent>
+    </shortcut>
+    <shortcut android:shortcutId="add_book" android:enabled="true" android:icon="@drawable/sc_book"
+        android:shortcutShortLabel="@string/sc_add_book" android:shortcutLongLabel="@string/sc_add_book_long">
+        <intent android:action="android.intent.action.VIEW"
+            android:targetPackage="com.gonzalo.gamerate"
+            android:targetClass="com.gonzalo.gamerate.MainActivity">
+            <extra android:name="go" android:value="add_book" />
+        </intent>
+    </shortcut>
+    <shortcut android:shortcutId="next_game" android:enabled="true" android:icon="@drawable/sc_cards"
+        android:shortcutShortLabel="@string/sc_next_game" android:shortcutLongLabel="@string/sc_next_game_long">
+        <intent android:action="android.intent.action.VIEW"
+            android:targetPackage="com.gonzalo.gamerate"
+            android:targetClass="com.gonzalo.gamerate.MainActivity">
+            <extra android:name="go" android:value="next_game" />
+        </intent>
+    </shortcut>
+    <shortcut android:shortcutId="stats_game" android:enabled="true" android:icon="@drawable/sc_stats"
+        android:shortcutShortLabel="@string/sc_stats" android:shortcutLongLabel="@string/sc_stats_long">
+        <intent android:action="android.intent.action.VIEW"
+            android:targetPackage="com.gonzalo.gamerate"
+            android:targetClass="com.gonzalo.gamerate.MainActivity">
+            <extra android:name="go" android:value="stats_game" />
+        </intent>
+    </shortcut>
+</shortcuts>

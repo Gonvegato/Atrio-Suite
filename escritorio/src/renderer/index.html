@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' atrio: data: https:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self' atrio:">
+  <title>Atrio</title>
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/layouts.css">
+  <link rel="stylesheet" href="styles/panels.css">
+  <link rel="stylesheet" href="styles/ronron.css">
+</head>
+<body class="booting">
+  <div id="splash" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M6 21V10a6 6 0 0 1 12 0v11"/><path d="M4 21h16"/></svg>
+    <p>Leyendo tu biblioteca</p>
+  </div>
+  <div id="backdrop" aria-hidden="true">
+    <div class="bd-layer"></div>
+    <div class="bd-layer"></div>
+    <div class="bd-scrim"></div>
+  </div>
+
+  <header id="chrome">
+    <nav id="filters" aria-label="Filtros"></nav>
+    <div id="chrome-right">
+      <button class="icon-btn" id="btn-calendar" data-nav data-zone="chrome" aria-label="Calendario">
+        <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-search" data-nav data-zone="chrome" aria-label="Buscar">
+        <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-settings" data-nav data-zone="chrome" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-power" data-nav data-zone="chrome" aria-label="Apagar, reiniciar o suspender">
+        <svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.5 6.8a8 8 0 1 0 11 0"/></svg>
+      </button>
+      <time id="clock"></time>
+    </div>
+  </header>
+
+  <main id="stage"></main>
+
+  <footer id="hints" aria-hidden="true"></footer>
+
+  <div id="overlays"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="launching" aria-hidden="true"><div class="launch-art"></div><p class="launch-name"></p></div>
+
+  <script src="js/util.js"></script>
+  <script src="js/color.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/layouts.js"></script>
+  <script src="js/dialogs.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/play.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/hd.js"></script>
+  <script src="js/gamepage.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/ronron.js"></script>
+</body>
+</html>

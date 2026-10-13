@@ -1,0 +1,9 @@
+node_modules/
+dist/
+capturas/
+.gradle/
+build/
+!escritorio/build/
+local.properties
+*.apk
+humo_out/

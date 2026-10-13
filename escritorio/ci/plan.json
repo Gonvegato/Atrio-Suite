@@ -1,0 +1,12 @@
+[ {"wait":9000,"name":"w1-biblioteca"},
+  {"page":"steam:1086940","wait":1500,"name":"w2-pagina"},
+  {"close":true,"wait":500},
+  {"launch":"custom:prueba","wait":3000},
+  {"open":"settings","section":"bibliotecas","wait":1500,"name":"w3-ajustes"},
+  {"close":true,"wait":500},
+  {"open":"custom","wait":1200,"name":"w4-anadir-juego"},
+  {"close":true,"wait":500},
+  {"open":"power","wait":1000,"name":"w5-energia"},
+  {"close":true,"wait":38000},
+  {"click":"#btn-calendar","wait":1500,"name":"w6-calendario"}
+]

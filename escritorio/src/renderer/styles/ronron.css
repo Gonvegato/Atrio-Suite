@@ -1,0 +1,177 @@
+/* =========================================================
+   Ronrón: pestaña Valorados, fichas, formularios y tarjeta en la página del juego
+   ========================================================= */
+:root {
+  --rr-top: #9fd6a8;
+  --rr-good: #c7dca0;
+  --rr-mid: #e2c98f;
+  --rr-low: #e6a08f;
+}
+body[data-scheme="niebla"], body[data-scheme="papel"] {
+  --rr-top: #23703a; --rr-good: #5b7420; --rr-mid: #8a6514; --rr-low: #9a3a26;
+}
+[data-tone="top"] { --tone: var(--rr-top); }
+[data-tone="good"] { --tone: var(--rr-good); }
+[data-tone="mid"] { --tone: var(--rr-mid); }
+[data-tone="low"] { --tone: var(--rr-low); }
+
+/* La pestaña está apartada del resto de filtros */
+#filters .chip[data-filter="valorados"] { margin-left: 1.1rem; }
+#filters .chip[data-filter="valorados"]::before {
+  content: ''; position: absolute; left: -.65rem; top: 25%; bottom: 25%; width: 1px; background: var(--line);
+}
+
+/* ---------- Pestaña Valorados ---------- */
+body[data-view="valorados"] .bd-scrim {
+  background:
+    linear-gradient(to bottom, rgba(var(--scrim), .82) 0%, rgba(var(--scrim), .55) 30%, rgba(var(--scrim), .7) 62%, rgba(var(--scrim), .97) 82%),
+    linear-gradient(to right, rgba(var(--scrim), .5), rgba(var(--scrim), 0) 60%);
+}
+body[data-view="valorados"] .bd-layer.on { opacity: calc(var(--art-dim) * .8); }
+.rv { position: absolute; inset: 0; display: flex; flex-direction: column; padding-top: calc(var(--pad-y) + 3.6rem); }
+.rv-head { display: flex; align-items: center; gap: 1rem; padding: .6rem var(--pad-x) .4rem; flex-wrap: wrap; }
+.rv-head .rv-sync { margin-left: auto; color: var(--fg-3); font-size: .9rem; }
+.rv-scroll {
+  flex: 1; min-height: 0; overflow-y: auto; padding: 1.4rem var(--pad-x) 15rem; scroll-padding-block: 1.6rem 15rem;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 1.2rem);
+}
+.rv-grid {
+  display: grid; gap: calc(1.5rem * var(--tile-scale)) calc(1.1rem * var(--tile-scale));
+  grid-template-columns: repeat(auto-fill, minmax(calc(8.4rem * var(--tile-scale)), 1fr));
+}
+.rv-grid .tile { aspect-ratio: 2 / 3; width: 100%; }
+.rv-grid .tile.focused { transform: translateY(-.35rem); }
+.rv-badge {
+  position: absolute; left: .45rem; top: .45rem; min-width: 2.3rem; height: 2.3rem; padding: 0 .45rem;
+  display: grid; place-items: center; border-radius: 99px; font-weight: 700; font-size: 1rem; font-variant-numeric: tabular-nums;
+  background: rgba(10, 12, 14, .78); color: var(--tone, #fff); box-shadow: inset 0 0 0 2px var(--tone, rgba(255,255,255,.4));
+  backdrop-filter: blur(6px);
+}
+.rv-badge.curso { color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+.rv-none { flex: 1; display: grid; place-content: center; color: var(--fg-2); font-size: 1.15rem; }
+.rv-caption {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 1.4rem var(--pad-x) 3.2rem; min-height: 12rem;
+  display: flex; align-items: flex-end; gap: 3rem;
+  background: linear-gradient(to top, rgba(var(--scrim), .98) 62%, rgba(var(--scrim), 0));
+  pointer-events: none;
+}
+.rv-cap-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .55rem; animation: atrio-in 260ms var(--ease) both; }
+.rv-cap-main .name {
+  font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking); font-size: 2.6rem; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rv-review { margin: .2rem 0 0; color: var(--fg-2); max-width: 70ch; font-size: 1rem; line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style: italic; }
+.rv-cap-score { flex: none; display: flex; align-items: center; gap: 1.6rem; animation: atrio-in 260ms var(--ease) both; animation-delay: 40ms; }
+
+/* Anillo con la nota */
+.rr-ring {
+  --sz: 3.6rem; width: var(--sz); height: var(--sz); border-radius: 50%; flex: none; position: relative; display: grid; place-items: center;
+  background: conic-gradient(var(--tone, var(--fg)) calc(var(--p) * 1%), rgba(var(--fg-rgb), .12) 0);
+}
+.rr-ring::before { content: ''; position: absolute; inset: .3rem; border-radius: 50%; background: rgba(var(--scrim), .92); }
+.rr-ring span { position: relative; font-weight: 700; font-size: 1.25rem; font-variant-numeric: tabular-nums; color: var(--fg); }
+.rr-ring.big { --sz: 6.2rem; }
+.rr-ring.big::before { inset: .45rem; }
+.rr-ring.big span {
+  font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: var(--display-weight); font-size: 2.5rem;
+}
+
+/* Barras de criterios */
+.rr-bars { display: grid; grid-template-columns: auto 9rem auto; gap: .45rem .9rem; align-items: center; }
+.rr-bar { display: contents; }
+.rr-bar .k { color: var(--fg-2); font-size: .92rem; }
+.rr-bar .t { height: .38rem; border-radius: 99px; background: rgba(var(--fg-rgb), .12); overflow: hidden; }
+.rr-bar .t span { display: block; height: 100%; border-radius: 99px; background: var(--tone, var(--fg)); }
+.rr-bar .v { font-variant-numeric: tabular-nums; font-weight: 600; font-size: .95rem; text-align: right; min-width: 1.8rem; }
+
+/* Entrar */
+.rr-empty { justify-items: stretch; }
+.rr-login { width: min(30rem, 80vw); display: flex; flex-direction: column; margin-top: .6rem; }
+.rr-login .row { margin-top: .2rem; }
+.rr-msg { min-height: 1.4em; margin-top: .8rem; }
+.set-block .rr-login { width: min(34rem, 100%); }
+
+/* ---------- Ficha ---------- */
+.rr-detail .rr-kicker { color: var(--fg-2); font-size: 1rem; font-weight: 500; letter-spacing: .02em; margin-bottom: -.8rem; }
+.rr-detail .gp-actions { flex-wrap: wrap; }
+.gp-btn { height: 3.7rem; padding: 0 1.8rem; font-size: 1.15rem; }
+.rr-scorebox { margin-left: auto; display: flex; align-items: center; gap: 1.6rem; }
+.rr-scorebox > div:not(.rr-ring) { display: flex; flex-direction: column; gap: .5rem; }
+.rr-sub { color: var(--fg-3); font-size: .9rem; }
+.rr-bottom { grid-template-columns: minmax(0, 1.6fr) minmax(22rem, 1fr); max-height: 34vh; }
+.rr-text { min-height: 0; display: flex; flex-direction: column; }
+.rr-review {
+  white-space: pre-wrap; color: var(--fg); font-size: 1.08rem; line-height: 1.55; max-width: 80ch; overflow-y: auto; max-height: 24vh;
+  padding: .2rem .6rem .2rem 0; border-radius: var(--radius-s); text-align: left;
+}
+.rr-review.focused { box-shadow: inset 0 0 0 2px var(--fg); padding-left: .6rem; }
+.rr-notes { list-style: none; margin: 0; padding: 0 .4rem 0 0; display: flex; flex-direction: column; gap: .5rem; overflow-y: auto; max-height: 24vh; }
+.rr-notes li { padding: .7rem .9rem; border-radius: var(--radius-s); background: rgba(var(--fg-rgb), .05); cursor: pointer; }
+.rr-notes li.focused { box-shadow: inset 0 0 0 2px var(--fg); }
+.rr-note-head { display: flex; align-items: baseline; gap: 1rem; }
+.rr-note-head .d { color: var(--fg-3); font-size: .9rem; }
+.rr-note-head .s { margin-left: auto; font-weight: 700; color: var(--tone); font-variant-numeric: tabular-nums; }
+.rr-notes p { margin: .35rem 0 0; color: var(--fg); white-space: pre-wrap; line-height: 1.45; }
+
+/* ---------- Formularios ---------- */
+.rr-form { display: flex; flex-direction: column; gap: 1rem; }
+.rr-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem 1.4rem; margin-bottom: .6rem; }
+.rr-slider {
+  display: grid; grid-template-columns: 7.5rem 1fr 3rem; align-items: center; gap: 1rem; padding: .7rem .9rem;
+  border-radius: var(--radius-s); background: var(--surface-2); text-align: left;
+}
+.rr-slider.main { grid-column: 1 / -1; padding: 1rem .9rem; }
+.rr-slider.main .rr-lab { font-weight: 600; color: var(--fg); }
+.rr-slider.main .rr-val { font-size: 1.6rem; }
+.rr-slider.focused { box-shadow: inset 0 0 0 2px var(--fg); }
+.rr-lab { color: var(--fg-2); }
+.rr-track { position: relative; height: .5rem; border-radius: 99px; background: rgba(var(--fg-rgb), .14); cursor: pointer; touch-action: none; }
+.rr-track::after { content: ''; position: absolute; inset: -.7rem 0; }
+.rr-fill { display: block; height: 100%; border-radius: 99px; background: var(--tone, var(--fg)); transition: width 80ms linear; }
+.rr-val { font-weight: 700; font-size: 1.2rem; font-variant-numeric: tabular-nums; text-align: right; color: var(--tone, var(--fg)); }
+.rr-area { height: auto; min-height: 7rem; padding: .8rem 1rem; line-height: 1.45; resize: vertical; }
+.rr-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4rem; }
+.rr-grid2 .input-row .btn { height: 2.9rem; }
+.rr-avg { color: var(--fg-3); font-size: 1rem; }
+.rr-avg b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.rr-hint { color: var(--fg-3); font-size: .85rem; align-self: center; }
+input.input[type="date"] { color-scheme: dark; }
+body[data-scheme="niebla"] input.input[type="date"], body[data-scheme="papel"] input.input[type="date"] { color-scheme: light; }
+
+/* ---------- Tarjeta en la página del juego ---------- */
+.gp-toprow { display: flex; align-items: flex-end; justify-content: space-between; gap: 3rem; }
+.rr-card {
+  flex: none; width: min(30rem, 34vw); padding: 1.2rem 1.3rem 1.1rem; border-radius: calc(var(--radius) * 1.4);
+  background: rgba(var(--scrim), .62); backdrop-filter: blur(18px) saturate(1.2); border: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: .8rem;
+}
+.rr-card.slim { padding-bottom: 1rem; }
+.rr-card-head { display: flex; align-items: center; gap: .55rem; color: var(--fg-2); font-size: .92rem; font-weight: 600; letter-spacing: .02em; }
+.rr-dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--accent); }
+.rr-card-main { display: flex; gap: 1rem; align-items: center; }
+.rr-card-info { min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
+.rr-card-sub { color: var(--fg-3); font-size: .9rem; }
+.rr-card-text { margin: 0; color: var(--fg); font-size: .98rem; line-height: 1.4; font-style: italic;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.rr-card.slim .rr-card-text { font-style: normal; color: var(--fg-2); }
+.rr-card-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+.rr-card-actions .btn { height: 2.5rem; padding: 0 1.1rem; font-size: .95rem; }
+
+/* ---------- Logo de la ficha (abajo y en la página) ---------- */
+.rv-cap-main .rr-logo { max-height: 6.5rem; max-width: min(34rem, 50vw); align-self: flex-start; margin-bottom: .2rem; }
+.rr-detail .gp-title .rr-logo { max-height: 12.5rem; max-width: 42rem; }
+
+/* ---------- Ronrón en el calendario ---------- */
+.cal-rr { position: absolute; top: .5rem; right: .55rem; display: flex; gap: .25rem; align-items: center; }
+.cal-rr-cover { position: relative; overflow: visible; box-shadow: 0 0 0 1.5px var(--accent); }
+.cal-rr-fin {
+  position: absolute; right: -.5rem; bottom: -.35rem; min-width: 1.5rem; height: 1.2rem; padding: 0 .25rem; border-radius: 99px;
+  display: grid; place-items: center; font-size: .7rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tone);
+  background: rgb(var(--scrim)); box-shadow: inset 0 0 0 1.5px var(--tone);
+}
+.cal-day .thumbs .cal-rr-cover + .th:not(.cal-rr-cover) { margin-left: .45rem; }
+.cal-rr-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); }
+.cal-rr-item .rr-ring { --sz: 2.8rem; align-self: center; }
+.cal-rr-item .rr-ring span { font-size: 1rem; }
+.cal-day .cal-more { align-self: center; font-size: .78rem; font-weight: 600; color: var(--fg-2); padding-left: .15rem; }
