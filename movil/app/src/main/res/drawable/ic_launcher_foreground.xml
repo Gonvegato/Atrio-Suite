@@ -1,33 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El arco de Atrio (la puerta) con su base azul acero, dentro de la zona segura del icono adaptativo -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <group android:pivotX="54" android:pivotY="54" android:scaleX="0.84" android:scaleY="0.84">
-        <!-- disco crudo -->
-        <path android:pathData="M21,54a33,33 0,1 0,66 0a33,33 0,1 0,-66 0z" android:fillColor="#F5F0E6"/>
-        <!-- orejas -->
-        <path android:pathData="M33,52 L35,27 L50,38 Z" android:fillColor="#2B2A33"
-            android:strokeColor="#2B2A33" android:strokeWidth="3" android:strokeLineJoin="round"/>
-        <path android:pathData="M75,52 L73,27 L58,38 Z" android:fillColor="#2B2A33"
-            android:strokeColor="#2B2A33" android:strokeWidth="3" android:strokeLineJoin="round"/>
-        <path android:pathData="M37,45 L38,33 L46,39 Z" android:fillColor="#F28DB2"/>
-        <path android:pathData="M71,45 L70,33 L62,39 Z" android:fillColor="#F28DB2"/>
-        <!-- cabeza -->
-        <path android:pathData="M29,58a25,21 0,1 0,50 0a25,21 0,1 0,-50 0z" android:fillColor="#2B2A33"/>
-        <!-- ojos felices -->
-        <path android:pathData="M39,55 q4,-5 8,0" android:strokeColor="#F5F0E6" android:strokeWidth="2.6" android:strokeLineCap="round"/>
-        <path android:pathData="M61,55 q4,-5 8,0" android:strokeColor="#F5F0E6" android:strokeWidth="2.6" android:strokeLineCap="round"/>
-        <!-- mofletes -->
-        <path android:pathData="M34,62a3.2,2.2 0,1 0,6.4 0a3.2,2.2 0,1 0,-6.4 0z" android:fillColor="#F28DB2" android:fillAlpha="0.8"/>
-        <path android:pathData="M67.6,62a3.2,2.2 0,1 0,6.4 0a3.2,2.2 0,1 0,-6.4 0z" android:fillColor="#F28DB2" android:fillAlpha="0.8"/>
-        <!-- nariz, boca y lengua -->
-        <path android:pathData="M51.5,60 h5 l-2.5,2.6 z" android:fillColor="#F28DB2"
-            android:strokeColor="#F28DB2" android:strokeWidth="1" android:strokeLineJoin="round"/>
-        <path android:pathData="M49,64.5 q2.5,2.4 5,0 q2.5,2.4 5,0" android:strokeColor="#F5F0E6" android:strokeWidth="1.6" android:strokeLineCap="round"/>
-        <path android:pathData="M51.6,65.8 h4.8 v2.6 a2.4,2.4 0,0 1,-4.8 0 z" android:fillColor="#E0443E"/>
-        <!-- estrella -->
-        <path android:pathData="M76,26 l2.35,4.76 5.25,0.76 -3.8,3.7 0.9,5.23 -4.7,-2.47 -4.7,2.47 0.9,-5.23 -3.8,-3.7 5.25,-0.76 z"
-            android:fillColor="#E8B931" android:strokeColor="#F5F0E6" android:strokeWidth="1.5" android:strokeLineJoin="round"/>
-    </group>
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:strokeColor="#E7E9EC" android:strokeWidth="6" android:strokeLineCap="butt"
+        android:pathData="M40.5,76 V44 A13.5,13.5 0 0 1 67.5,44 V76" />
+    <path android:strokeColor="#A9B8C9" android:strokeWidth="3.2" android:pathData="M37.5,77.6 H70.5" />
 </vector>

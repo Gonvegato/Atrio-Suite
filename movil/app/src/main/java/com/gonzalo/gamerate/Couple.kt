@@ -529,7 +529,7 @@ fun CoupleSettings(store: Store, onPartner: (Partner?) -> Unit, onRestored: () -
     Column(Modifier.fillMaxWidth()) {
         if (!signed) {
             Text(
-                "Con una cuenta de Ronrón tus datos se guardan en la nube con tu usuario: los ves y los editas desde cualquier " +
+                "Con una cuenta de Atrio tus datos se guardan en la nube con tu usuario: los ves y los editas desde cualquier " +
                     "dispositivo (este móvil, otro, o Atrio en el ordenador) y todo se junta solo. Tu pareja te encuentra por tu usuario.",
                 color = UiSoft, modifier = Modifier.padding(bottom = 10.dp)
             )
@@ -650,7 +650,7 @@ fun CoupleSettings(store: Store, onPartner: (Partner?) -> Unit, onRestored: () -
             Text("Tu pareja", fontWeight = FontWeight.SemiBold)
             if (store.partnerUid.isBlank()) {
                 Text(
-                    "Escribe su usuario de Ronrón. Así ella puede ver lo tuyo; cuando ella ponga el tuyo (${store.accUser}), tú verás lo suyo.",
+                    "Escribe su usuario de Atrio. Así ella puede ver lo tuyo; cuando ella ponga el tuyo (${store.accUser}), tú verás lo suyo.",
                     color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)
                 )
                 OutlinedTextField(
@@ -665,7 +665,7 @@ fun CoupleSettings(store: Store, onPartner: (Partner?) -> Unit, onRestored: () -
                         partnerIn = ""
                         val p = refreshPartner()
                         if (p != null) "Ya compartís: ves lo de ${p.name}."
-                        else "Listo. Cuando ${store.partnerUser} ponga tu usuario (${store.accUser}) en su Ronrón, veréis lo del otro."
+                        else "Listo. Cuando ${store.partnerUser} ponga tu usuario (${store.accUser}) en su Atrio, veréis lo del otro."
                     }
                 }) { Text("Compartir con mi pareja") }
             } else {
@@ -675,7 +675,7 @@ fun CoupleSettings(store: Store, onPartner: (Partner?) -> Unit, onRestored: () -
                     when {
                         inf != null -> "Compartes con $who. Sus datos son de " +
                             DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(inf.updated)) + "."
-                        shares == false -> "Ella ya puede ver lo tuyo. Tú verás lo suyo cuando $who ponga tu usuario (${store.accUser}) en su Ronrón."
+                        shares == false -> "Ella ya puede ver lo tuyo. Tú verás lo suyo cuando $who ponga tu usuario (${store.accUser}) en su Atrio."
                         else -> "Compartes con $who. Aún no ha subido nada."
                     },
                     color = UiSoft, fontSize = 13.sp, modifier = Modifier.padding(vertical = 6.dp)

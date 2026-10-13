@@ -1,14 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo del icono: el mismo negro azulado que el icono de Atrio en el PC -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- Vichy cereza, como el menú -->
-    <path android:pathData="M0,0h108v108h-108z" android:fillColor="#FFFFFF"/>
-    <path
-        android:pathData="M0,0h6v108h-6zM12,0h6v108h-6zM24,0h6v108h-6zM36,0h6v108h-6zM48,0h6v108h-6zM60,0h6v108h-6zM72,0h6v108h-6zM84,0h6v108h-6zM96,0h6v108h-6z"
-        android:fillColor="#B0102F" android:fillAlpha="0.5"/>
-    <path
-        android:pathData="M0,0h108v6h-108zM0,12h108v6h-108zM0,24h108v6h-108zM0,36h108v6h-108zM0,48h108v6h-108zM0,60h108v6h-108zM0,72h108v6h-108zM0,84h108v6h-108zM0,96h108v6h-108z"
-        android:fillColor="#B0102F" android:fillAlpha="0.5"/>
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#11151C" android:pathData="M0,0h108v108h-108z" />
 </vector>

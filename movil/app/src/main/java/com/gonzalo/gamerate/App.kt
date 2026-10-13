@@ -630,7 +630,7 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRa
             try {
                 val bm = Export.renderYear(ctx, k, list, y, store.myName)
                 val uri = withContext(Dispatchers.IO) { Export.saveJpgUri(ctx, bm, "ronron-$y-${normName(k.title)}") }
-                if (uri != null) Export.share(ctx, uri, "Mi $y en Ronrón") else say("No se pudo preparar la imagen")
+                if (uri != null) Export.share(ctx, uri, "Mi $y en Atrio") else say("No se pudo preparar la imagen")
             } catch (e: Exception) { say("Error: ${e.message}") }
         }
     }
@@ -854,7 +854,7 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRa
                 }
                 val sectionKinds = if (pv) p!!.allKinds else myKinds
                 MenuScreen(
-                    title = if (pv) p!!.name else store.myName.ifBlank { "Ronrón" },
+                    title = if (pv) p!!.name else store.myName.ifBlank { "Atrio" },
                     tiles = sectionKinds.map { it to info(it) },
                     partnerName = p?.name,
                     recs = pendingRecs, acts = acts,
@@ -877,7 +877,7 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRa
                                 onOpenPlay = { p -> section = 0; screen = Screen.PlayDetail(p) },
                                 onRemote = { screen = Screen.Suite }
                             )
-                            if (Suite.pcs().isNotEmpty()) Spacer(Modifier.height(20.dp))
+                            Spacer(Modifier.height(20.dp))
                             if (pendingSegs.isNotEmpty()) {
                                 PendingParts(
                                     pendingSegs,
@@ -890,6 +890,12 @@ fun App(store: Store, openId: Long, openPartner: Boolean, openGo: String, openRa
                                 ShotStrip(Suite.localShots.take(10), "Últimas capturas") { s -> screen = Screen.ShotView(s, Screen.Home) }
                                 Spacer(Modifier.height(20.dp))
                             }
+                        } else if (!pv) {
+                            SuiteIntro(
+                                "Tu PC en el móvil",
+                                "Entra en tu cuenta (Ajustes → Cuenta y pareja) y en Atrio del PC con la misma: verás en directo a qué juegas, pedirás capturas a calidad original y valorarás cada partida."
+                            ) { screen = Screen.Settings }
+                            Spacer(Modifier.height(20.dp))
                         }
                     }
                 )

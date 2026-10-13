@@ -2,7 +2,7 @@
 
 Dos apps que ahora son una sola cosa:
 
-- **Ronrón** (`movil/`, Android): tus juegos, libros, películas, series y categorías propias; valoraciones,
+- **Atrio para Android** (`movil/`, antes Ronrón; mismo paquete, se instala encima sin perder datos): tus juegos, libros, películas, series y categorías propias; valoraciones,
   apuntes, calendario, estadísticas, «Siguiente», modo pareja, copias en Drive… y ahora el **mando del PC**.
 - **Atrio** (`escritorio/`, Linux y Windows): el launcher de Steam, Heroic, Lutris, emuladores y juegos propios,
   con arte de SteamGridDB, mando, horas de juego y tu cuenta de Ronrón… y ahora **conectado al móvil en directo**.

@@ -175,7 +175,7 @@ object Export {
         wp.textSize = 30f
         wp.textAlign = Paint.Align.CENTER
         wp.typeface = display
-        c.drawText("Ronrón", W / 2f, h - 50f, wp)
+        c.drawText("Atrio", W / 2f, h - 50f, wp)
         bm
     }
 
@@ -202,7 +202,7 @@ object Export {
             c.drawText(s, x, y, p)
         }
 
-        left(("Ronrón · " + kind.title).uppercase(), m, 170f, 30f, MUTED, bodyBold)
+        left(("Atrio · " + kind.title).uppercase(), m, 170f, 30f, MUTED, bodyBold)
         left(if (name.isNotBlank()) "El $year de $name" else "Mi $year", m, 270f, 84f, CHAR, display)
         c.drawRect(m, 330f, W - m, 332f, fill(LINE))
 
@@ -272,7 +272,7 @@ object Export {
         }
         val wp = Paint(Paint.ANTI_ALIAS_FLAG)
         wp.color = MUTED; wp.textSize = 30f; wp.textAlign = Paint.Align.CENTER; wp.typeface = display
-        c.drawText("Ronrón", W / 2f, H - 70f, wp)
+        c.drawText("Atrio", W / 2f, H - 70f, wp)
         bm
     }
 

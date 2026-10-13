@@ -347,7 +347,7 @@ object Suite {
                 val v = ContentValues().apply {
                     put(MediaStore.Images.Media.DISPLAY_NAME, "${safe} ${java.text.SimpleDateFormat("yyyy-MM-dd HH.mm.ss", java.util.Locale.ROOT).format(java.util.Date(s.time))}.$ext")
                     put(MediaStore.Images.Media.MIME_TYPE, s.mime)
-                    put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Ronrón/$safe")
+                    put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Atrio/$safe")
                     put(MediaStore.Images.Media.IS_PENDING, 1)
                 }
                 val r = appCtx.contentResolver

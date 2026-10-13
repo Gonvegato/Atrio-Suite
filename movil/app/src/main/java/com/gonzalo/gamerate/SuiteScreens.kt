@@ -126,6 +126,8 @@ fun LiveCard(
                     Text(if (known.at > 0) "Visto por última vez ${ago(known.at)}" else "Abre Atrio con tu cuenta", color = Muted, fontSize = 12.sp)
                 }
             }
+        } else {
+            SuiteIntro("Conecta tu PC", "Instala Atrio 1.0 en el PC y entra con esta misma cuenta (en el PC: Ajustes → Ronrón). Al abrirlo aparecerá aquí en directo: capturas, apuntes, partidas para valorar y el mando del PC.", onRemote)
         }
         return
     }
@@ -186,6 +188,26 @@ fun LiveCard(
                 if (play != null) RemoteButton(Icons.Rounded.Star, "Ficha", light = true) { onOpenPlay(play) }
                 RemoteButton(Icons.Rounded.SportsEsports, "Mando", light = true) { onRemote() }
             }
+        }
+    }
+}
+
+/** Tarjeta de la suite cuando aún no hay ningún PC (o no has entrado en tu cuenta). */
+@Composable
+fun SuiteIntro(title: String, text: String, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(20.dp)
+    Row(
+        Modifier.fillMaxWidth().clip(shape).background(Brush.linearGradient(listOf(LiveColor.copy(alpha = 0.18f), Color.Transparent)))
+            .border(1.dp, Line, shape).clickable { onClick() }.padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Rounded.Computer, null, tint = LiveColor, modifier = Modifier.size(28.dp))
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Overline("Novedad · Suite con Atrio")
+            Text(title, fontFamily = Display, fontSize = 20.sp)
+            Spacer(Modifier.height(4.dp))
+            Text(text, color = Muted, fontSize = 13.sp)
         }
     }
 }
@@ -310,7 +332,7 @@ fun ShotViewer(shot: Shot, onBack: () -> Unit, onDelete: () -> Unit, onMemo: (()
         AlertDialog(
             onDismissRequest = { ask = false },
             title = { Text("¿Borrar la captura?", fontFamily = Display) },
-            text = { Text("Se borra de Ronrón. Si se guardó en la galería, allí se queda; y en el PC sigue en Imágenes/Atrio.") },
+            text = { Text("Se borra de Atrio. Si se guardó en la galería, allí se queda; y en el PC sigue en Imágenes/Atrio.") },
             confirmButton = { TextButton({ ask = false; onDelete() }) { Text("Borrar") } },
             dismissButton = { TextButton({ ask = false }) { Text("Cancelar") } },
             shape = RoundedCornerShape(24.dp)
@@ -521,7 +543,7 @@ fun SuiteScreen(
     }
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         Column(Modifier.padding(horizontal = 16.dp)) {
-            TopBar("Ronrón", onBack, pc?.name ?: "Tu PC") {
+            TopBar("Atrio", onBack, pc?.name ?: "Tu PC") {
                 Box(Modifier.padding(end = 4.dp)) {
                     if (pc != null) Row(verticalAlignment = Alignment.CenterVertically) { LiveDot(); Spacer(Modifier.width(6.dp)); Text("Conectado", fontSize = 12.sp, color = Muted) }
                     else Text(Suite.state, fontSize = 12.sp, color = Muted)
@@ -549,7 +571,7 @@ fun SuiteScreen(
                     } else {
                         LiveCard(plays, { shot() }, shooting, onMemo, onOpenPlay) { }
                         Spacer(Modifier.height(18.dp))
-                        Text("Las capturas llegan a su resolución original (PNG, sin pérdida) y se guardan en Imágenes/Ronrón y, en el PC, en Imágenes/Atrio.",
+                        Text("Las capturas llegan a su resolución original (PNG, sin pérdida) y se guardan en Imágenes/Atrio y, en el PC, en Imágenes/Atrio.",
                             color = Muted, fontSize = 13.sp)
                         Spacer(Modifier.height(18.dp))
                         ShotStrip(Suite.localShots.take(12), "Últimas capturas", onOpenShot)
@@ -643,7 +665,7 @@ fun SuiteScreen(
                             Row(Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(8.dp).background(if (d.online) ColMusic else Line, CircleShape))
                                 Spacer(Modifier.width(10.dp))
-                                Text("${d.name} · ${if (d.app == "atrio") "Atrio" else "Ronrón"}" + if (d.online) "" else " · ${ago(d.at)}", fontSize = 14.sp)
+                                Text("${d.name} · ${if (d.app == "atrio") "PC" else "móvil"}" + if (d.online) "" else " · ${ago(d.at)}", fontSize = 14.sp)
                             }
                         }
                     }
@@ -671,7 +693,7 @@ private fun EmptySuite() {
         Spacer(Modifier.height(12.dp))
         Text("Ningún PC conectado", fontFamily = Display, fontSize = 22.sp)
         Spacer(Modifier.height(6.dp))
-        Text("Abre Atrio en el PC y entra con tu cuenta de Ronrón (Ajustes → Ronrón). En cuanto esté abierto aparecerá aquí, en directo.",
+        Text("Abre Atrio en el PC y entra con tu cuenta (en el PC: Ajustes → Ronrón). En cuanto esté abierto aparecerá aquí, en directo.",
             color = Muted, textAlign = TextAlign.Center, fontSize = 14.sp)
     }
 }
