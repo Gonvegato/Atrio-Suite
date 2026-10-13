@@ -8,7 +8,8 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const [FB, USER, PASS, OUT] = process.argv.slice(2);
+const [FB, USER, PASS, OUT0] = process.argv.slice(2);
+const OUT = path.resolve(OUT0);
 const ROOT = path.resolve(__dirname, '..');
 const HOME = path.join(OUT, 'atrio-home');
 

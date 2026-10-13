@@ -53,6 +53,8 @@ adb shell am start -W -n "$PKG/.MainActivity" | tee -a "$LOG"
 shot 01_menu 6; alive "abrir"
 
 step "Nueva categoría"
+# Con Películas y Series ya creadas, la casilla queda abajo: se baja antes
+adb shell input swipe 500 1500 500 500 300; sleep 1
 tap "Nueva categoría" && shot 02_dialogo; alive "dialogo"
 tap "Nombre (p. ej. Películas)" && type "Peliculas"
 tap "Criterio 1" && type "Guion"
@@ -61,6 +63,7 @@ adb shell input keyevent 4; sleep 1
 tap "Guardar"; shot 03_menu_categoria; alive "crear categoria"
 
 step "Entrar en la categoría y añadir"
+adb shell input swipe 500 1500 500 500 300; sleep 1
 tap "Peliculas"; shot 04_seccion; alive "seccion"
 tap "Añadir"; shot 05_anadir; alive "anadir"
 tap "Nombre" && type "Dune%sParte%sDos"
