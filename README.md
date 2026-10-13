@@ -87,3 +87,18 @@ herramientas/  Firebase de mentira (con streaming), pruebas de la suite y prueba
 - `cd movil && gradle testDebugUnitTest`: streaming y mezcla del móvil contra el Firebase de mentira.
 - `node herramientas/capturas-atrio.js`: capturas de la interfaz de Atrio con la suite conectada.
 - Actions → «Prueba en emulador»: Ronrón en un emulador Android con Atrio de verdad al lado, de principio a fin.
+
+## Capturas
+
+Móvil (emulador Android en GitHub Actions, con Atrio de verdad al lado):
+[PC conectado](docs/capturas/25_suite_conectado.png) ·
+[captura recibida a 1920×1080](docs/capturas/26_captura.png) ·
+[biblioteca del PC](docs/capturas/28_biblioteca_pc.png) ·
+[en directo](docs/capturas/29_en_directo.png) ·
+[apunte rápido](docs/capturas/30_apunte.png) ·
+[por valorar](docs/capturas/31_por_valorar.png) ·
+[valorar la partida](docs/capturas/32_valorar_partida.png)
+
+Atrio: [panel de la suite](docs/capturas/02-panel-suite.png) ·
+[ficha con partidas por valorar](docs/capturas/06-ficha-ronron.png) ·
+[ajustes de la suite](docs/capturas/07-ajustes-suite.png)
