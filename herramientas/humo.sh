@@ -198,7 +198,8 @@ shot 29_en_directo 2; alive "en directo"
 
 step "Suite: apunte rápido mientras se juega"
 tap "Apunte"; sleep 2
-tap "Lo que está pasando" && type "Apuntedeprueba"; sleep 3
+# En Compose, «input text» de golpe pierde letras: se escribe a trozos
+tap "Lo que está pasando" && for w in Apu nte dep rue ba; do adb shell input text "$w"; sleep 0.8; done; sleep 2
 must see "Apuntedeprueba" 5
 shot 30_apunte 1
 tap "Guardar"; sleep 8; alive "apunte"
