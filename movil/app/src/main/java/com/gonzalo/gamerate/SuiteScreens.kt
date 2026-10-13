@@ -154,6 +154,13 @@ fun LiveCard(
     val hero = play?.hero?.ifBlank { null } ?: g.hero.ifBlank { g.cover }
     Box(Modifier.fillMaxWidth().height(236.dp).clip(shape).background(Color(0xFF15151A)).clickable { onRemote() }) {
         if (hero.isNotBlank()) AsyncImage(hero, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        else {
+            // Sin arte: un degradado con un tono propio de cada juego (el mismo nombre, el mismo color)
+            val hue = ((g.name.hashCode() and 0x7fffffff) % 360).toFloat()
+            Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(
+                Color.hsv(hue, 0.55f, 0.42f), Color.hsv((hue + 40f) % 360f, 0.6f, 0.18f)
+            ))))
+        }
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to Color(0x55000000), 0.45f to Color(0x22000000), 1f to Color(0xEE0B0B0E))))
         Row(Modifier.padding(14.dp).background(Color(0x66000000), RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
             LiveDot()
