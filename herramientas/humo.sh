@@ -198,10 +198,11 @@ shot 29_en_directo 2; alive "en directo"
 
 step "Suite: apunte rápido mientras se juega"
 tap "Apunte"; sleep 2
-tap "Lo que está pasando" && type "Prueba%sde%sapunte"; adb shell input keyevent 4; sleep 1
+tap "Lo que está pasando" && type "Apuntedeprueba"; sleep 3
+must see "Apuntedeprueba" 5
 shot 30_apunte 1
-tap "Guardar"; sleep 6; alive "apunte"
-must $SIM has gonzalo secreto1 "Prueba de apunte"
+tap "Guardar"; sleep 8; alive "apunte"
+must $SIM has gonzalo secreto1 "Apuntedeprueba"
 echo "   el apunte está en la cuenta" | tee -a "$LOG"
 
 step "Suite: al cerrar el juego, la partida llega para valorarla"
