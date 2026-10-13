@@ -75,6 +75,16 @@ async function j(method, url, body) {
     { click: '.gp-web-btn', wait: 2500, name: '08-guias-inicio' },
     { click: '.web-card', wait: 9000, name: '09-guias-web', screen: true },
     { click: '.web-save', wait: 1500, name: '10-guias-guardada', screen: true },
+    { close: true, wait: 600 },
+    { open: 'settings', section: 'apariencia', wait: 1500, name: '11-apariencia' },
+    { open: 'settings', section: 'streaming', wait: 1800, name: '12-ajustes-streaming' },
+    { close: true, wait: 400 },
+    { config: { theme: { scheme: 'p-neon', font: 'cyberpunk' } }, wait: 1800, name: '13-estilo-cyberpunk' },
+    { config: { theme: { scheme: 'p-gameboy', font: 'arcade' } }, wait: 1800, name: '14-estilo-arcade' },
+    { config: { theme: { scheme: 'p-dracula', font: 'geometrica' } }, wait: 1800, name: '15-estilo-dracula' },
+    { config: { theme: { scheme: 'p-catppuccin-claro', font: 'retro' } }, wait: 1800, name: '16-estilo-latte' },
+    { config: { theme: { scheme: 'p-vino', font: 'fantasia' } }, wait: 1800, name: '17-estilo-fantasia' },
+    { config: { theme: { scheme: 'noche', font: 'grotesca' } }, wait: 600 },
   ]));
   fs.mkdirSync(OUT, { recursive: true });
   const env = { ...process.env, ATRIO_HOME: HOME, ATRIO_RONRON_DB: FB, ATRIO_RONRON_AUTH: FB, ATRIO_NO_SANDBOX: '1', ATRIO_SHOTS: OUT, ATRIO_SHOT_PLAN: plan, ATRIO_SIZE: '1720x968' };

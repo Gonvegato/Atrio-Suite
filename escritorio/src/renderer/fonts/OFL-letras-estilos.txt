@@ -1,0 +1,8 @@
+Letras de los estilos de Atrio (Ajustes → Apariencia), sacadas de Fontsource (subconjunto latino, woff2).
+Todas con licencia SIL Open Font License 1.1 (https://openfontlicense.org):
+
+Fraunces (Undercase Type, Phaedra Charles, Flavia Zimbardi) · Playfair Display (Claus Eggers Sørensen) · Cinzel (Natanael Gama)
+Orbitron (Matt McInerney) · Rajdhani (Indian Type Foundry) · Press Start 2P (CodeMan38) · VT323 (Peter Hull)
+Space Grotesk (Florian Karsten) · Bebas Neue (Ryoichi Tsunekawa) · Exo 2 (Natanael Gama) · Bricolage Grotesque (Mathieu Triay)
+Unbounded · Syne (Bonjour Monde, Lucas Descroix, George Triantafyllakos) · JetBrains Mono (JetBrains)
+Silkscreen (Jason Kottke) · Righteous (Astigmatic)

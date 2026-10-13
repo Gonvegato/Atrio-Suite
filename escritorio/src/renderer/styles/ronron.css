@@ -7,7 +7,7 @@
   --rr-mid: #e2c98f;
   --rr-low: #e6a08f;
 }
-body[data-scheme="niebla"], body[data-scheme="papel"] {
+body[data-light] {
   --rr-top: #23703a; --rr-good: #5b7420; --rr-mid: #8a6514; --rr-low: #9a3a26;
 }
 [data-tone="top"] { --tone: var(--rr-top); }
@@ -137,7 +137,7 @@ body[data-view="valorados"] .bd-layer.on { opacity: calc(var(--art-dim) * .8); }
 .rr-avg b { color: var(--fg); font-variant-numeric: tabular-nums; }
 .rr-hint { color: var(--fg-3); font-size: .85rem; align-self: center; }
 input.input[type="date"] { color-scheme: dark; }
-body[data-scheme="niebla"] input.input[type="date"], body[data-scheme="papel"] input.input[type="date"] { color-scheme: light; }
+body[data-light] input.input[type="date"] { color-scheme: light; }
 
 /* ---------- Tarjeta en la página del juego ---------- */
 .gp-toprow { display: flex; align-items: flex-end; justify-content: space-between; gap: 3rem; }

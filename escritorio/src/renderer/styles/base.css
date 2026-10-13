@@ -254,7 +254,7 @@ body.no-hints #hints { display: none; }
 .tile .ph span { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .tile[data-shape="cover"] .ph { font-size: calc(1.35rem * var(--tile-scale)); }
 .tile[data-shape="square"] .ph { font-size: calc(.82rem * var(--tile-scale)); padding: 10%; }
-body[data-scheme="niebla"] .tile .ph, body[data-scheme="papel"] .tile .ph {
+body[data-light] .tile .ph {
   color: #16191e;
   background:
     radial-gradient(120% 80% at 100% 0%, hsl(calc(var(--ph-h, 220) + 40) 45% 80% / .7), transparent 60%),
@@ -270,7 +270,7 @@ body[data-scheme="niebla"] .tile .ph, body[data-scheme="papel"] .tile .ph {
   box-shadow: 0 0 0 .2rem var(--bg), 0 0 0 .38rem var(--fg), 0 1.2rem 3rem rgba(0,0,0,.45);
   z-index: 2;
 }
-body[data-scheme="niebla"] .tile.focused, body[data-scheme="papel"] .tile.focused {
+body[data-light] .tile.focused {
   box-shadow: 0 0 0 .2rem var(--bg), 0 0 0 .38rem var(--fg), 0 1rem 2.4rem rgba(0,0,0,.18);
 }
 
@@ -278,7 +278,7 @@ body[data-scheme="niebla"] .tile.focused, body[data-scheme="papel"] .tile.focuse
   display: block; max-width: 100%; object-fit: contain; object-position: left bottom;
   filter: drop-shadow(0 .35rem 1.4rem rgba(0, 0, 0, .45));
 }
-body[data-scheme="niebla"] .title-art, body[data-scheme="papel"] .title-art { filter: drop-shadow(0 .2rem .8rem rgba(0, 0, 0, .25)); }
+body[data-light] .title-art { filter: drop-shadow(0 .2rem .8rem rgba(0, 0, 0, .25)); }
 
 /* Respuesta al cambiar de juego: el título y los datos entran con un leve desplazamiento */
 @keyframes atrio-in { from { opacity: 0; transform: translateY(.45rem); } to { opacity: 1; transform: none; } }

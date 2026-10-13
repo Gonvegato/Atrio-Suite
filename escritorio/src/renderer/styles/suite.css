@@ -1,7 +1,7 @@
 /* La suite con Ronrón: indicador del móvil, panel, capturas y partes para valorar.
    El rojo «en directo» es el mismo que en el móvil. */
 :root { --live: #ff6b5e; --live-soft: rgba(255, 107, 94, .16); }
-body[data-scheme="niebla"], body[data-scheme="papel"] { --live: #d9443a; --live-soft: rgba(217, 68, 58, .14); }
+body[data-light] { --live: #d9443a; --live-soft: rgba(217, 68, 58, .14); }
 
 /* Indicador en la barra: el móvil conectado late */
 .suite-btn { position: relative; }

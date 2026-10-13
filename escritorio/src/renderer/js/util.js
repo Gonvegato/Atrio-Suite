@@ -101,3 +101,6 @@ A.$ = (s, r = document) => r.querySelector(s);
 A.$$ = (s, r = document) => [...r.querySelectorAll(s)];
 A.plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 A.wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ¿Esquema de color claro? (los de siempre y los generados de las paletas del móvil)
+A.isLightScheme = (id) => id === 'niebla' || id === 'papel' || !!((A.ESTILOS && A.ESTILOS.schemes) || []).find((s) => s.id === id && s.light);

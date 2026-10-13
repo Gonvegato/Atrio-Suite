@@ -66,9 +66,28 @@
     }))),
     h('b', l.name), h('small', l.hint)));
 
-    const schemes = SCHEMES.map(([id, name, bg, fg]) => h('button.swatch', {
+    const swatch = (id, name, bg, fg) => h('button.swatch', {
       'data-nav': true, 'aria-pressed': String(id === t.scheme), onclick: () => theme({ scheme: id }),
-    }, h('span.dot', { style: { background: bg, '--sw-fg': fg } }), h('small', name)));
+    }, h('span.dot', { style: { background: bg, '--sw-fg': fg } }), h('small', name));
+    const E = A.ESTILOS || { schemes: [], fonts: [], combos: [] };
+    const schemes = SCHEMES.map(([id, name, bg, fg]) => swatch(id, name, bg, fg));
+    const groups = ['Atrio', 'Editores', 'Clásicos', 'Claros'].map((g) => {
+      const list = E.schemes.filter((x) => x.group === g);
+      return list.length ? h('div', h('h4.sw-group', g === 'Atrio' ? 'Paletas de Atrio (las mismas del móvil)' : g === 'Editores' ? 'De editores de código' : g),
+        h('div.swatches', list.map((x) => swatch(x.id, x.name, x.bg, x.accent)))) : null;
+    });
+    const fontOf = (f) => (f.display ? `'${f.display}'` : ({ serif: "'Newsreader'", mono: "'IBM Plex Mono'", redonda: "'Nunito'" })[f.id] || "'Instrument Sans'");
+    const fonts = E.fonts.map((f) => h('button.font-card', {
+      'data-nav': true, 'aria-pressed': String(f.id === t.font), onclick: () => theme({ font: f.id }),
+    }, h('span.aa', { style: { fontFamily: fontOf(f) } }, 'Aa'), h('small', f.name)));
+    const combos = E.combos.map((c) => {
+      const sc = E.schemes.find((x) => x.id === c.scheme) || { bg: (SCHEMES.find((x) => x[0] === c.scheme) || [])[2], fg: (SCHEMES.find((x) => x[0] === c.scheme) || [])[3] };
+      const f = E.fonts.find((x) => x.id === c.font) || {};
+      const on = t.scheme === c.scheme && t.font === c.font;
+      return h('button.combo-card', {
+        'data-nav': true, 'aria-pressed': String(on), style: { background: sc.bg, color: sc.fg }, onclick: () => theme({ scheme: c.scheme, font: c.font }),
+      }, h('b', { style: { fontFamily: fontOf(f) } }, c.name), h('small', f.name || ''));
+    });
 
     const accents = ACCENTS.map(([v, name]) => h('button.swatch', {
       'data-nav': true, 'aria-pressed': String(v === t.accent), onclick: () => theme({ accent: v }),
@@ -78,10 +97,10 @@
       h('h2', 'Apariencia'),
       h('p.lead', 'Los cambios se aplican al momento. Combina diseño, colores y tipografía hasta dar con el que te guste.'),
       h('h3', 'Diseño de la biblioteca'), h('div.lay-grid', cards),
-      h('h3', 'Colores'), h('div.swatches', schemes),
+      h('h3', 'Combinaciones'), h('p.note', 'Colores y letras que van bien juntos (los mismos estilos que en el móvil).'), h('div.combo-grid', combos),
+      h('h3', 'Colores'), h('div.swatches', schemes), groups,
       h('h3', 'Color de acento'), h('div.swatches', accents),
-      h('h3', 'Tipografía'),
-      A.dialogs.seg([['grotesca', 'Grotesca'], ['serif', 'Serif'], ['mono', 'Monoespaciada'], ['redonda', 'Redondeada']], t.font, (v) => theme({ font: v })),
+      h('h3', 'Tipografía'), h('div.font-grid', fonts),
       h('h3', 'Tamaño de las portadas'),
       A.dialogs.seg([['compacta', 'Pequeño'], ['normal', 'Normal'], ['amplia', 'Grande']], t.density, (v) => theme({ density: v })),
       h('h3', 'Fondo'),

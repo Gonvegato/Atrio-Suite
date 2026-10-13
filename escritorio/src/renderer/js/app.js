@@ -27,6 +27,8 @@
     const b = document.body;
     b.dataset.layout = A.layouts.get(t.layout).id;
     b.dataset.scheme = t.scheme;
+    // Esquemas claros: sombras y colores de aviso propios
+    if (A.isLightScheme(t.scheme)) b.dataset.light = '1'; else delete b.dataset.light;
     b.dataset.font = t.font;
     b.dataset.density = t.density;
     b.dataset.backdrop = t.backdrop;
@@ -209,7 +211,7 @@
     if (tintSrc) {
       A.color.analyse(tintSrc).then((rgb) => {
         if (!rgb || backdropKey !== g.key) return;
-        const light = ['niebla', 'papel'].includes(state.config.theme.scheme);
+        const light = A.isLightScheme(state.config.theme.scheme);
         const tint = A.color.toTint(rgb);
         document.body.style.setProperty('--tint', tint.join(', '));
         if (state.config.theme.accent === 'auto') {

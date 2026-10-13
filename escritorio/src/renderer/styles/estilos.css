@@ -1,0 +1,271 @@
+/* Generado por herramientas/gen-estilos.py a partir de las paletas del móvil (Skin.kt): no editar a mano. */
+@font-face { font-family: 'Fraunces'; font-weight: 100 900; font-display: block; src: url('../fonts/fraunces-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-weight: 400 900; font-display: block; src: url('../fonts/playfair-display-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cinzel'; font-weight: 400 900; font-display: block; src: url('../fonts/cinzel-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Orbitron'; font-weight: 400 900; font-display: block; src: url('../fonts/orbitron-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 500; font-display: block; src: url('../fonts/rajdhani-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 700; font-display: block; src: url('../fonts/rajdhani-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Press Start 2P'; font-weight: 400; font-display: block; src: url('../fonts/press-start-2p-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'VT323'; font-weight: 400; font-display: block; src: url('../fonts/vt323-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Space Grotesk'; font-weight: 300 700; font-display: block; src: url('../fonts/space-grotesk-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Bebas Neue'; font-weight: 400; font-display: block; src: url('../fonts/bebas-neue-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Exo 2'; font-weight: 100 900; font-display: block; src: url('../fonts/exo-2-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Bricolage Grotesque'; font-weight: 200 800; font-display: block; src: url('../fonts/bricolage-grotesque-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Unbounded'; font-weight: 200 900; font-display: block; src: url('../fonts/unbounded-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Syne'; font-weight: 400 800; font-display: block; src: url('../fonts/syne-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 100 800; font-display: block; src: url('../fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Silkscreen'; font-weight: 400; font-display: block; src: url('../fonts/silkscreen-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Righteous'; font-weight: 400; font-display: block; src: url('../fonts/righteous-latin-400-normal.woff2') format('woff2'); }
+
+/* Juegos de letras */
+body[data-font="editorial"] { --font: 'Instrument Sans', system-ui, sans-serif; --font-display: 'Fraunces', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 560; --display-tracking: -0.02em; }
+body[data-font="elegante"] { --font: 'Newsreader', Georgia, serif; --font-display: 'Playfair Display', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 600; --display-tracking: -0.01em; }
+body[data-font="fantasia"] { --font: 'Newsreader', Georgia, serif; --font-display: 'Cinzel', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 600; --display-tracking: 0.02em; }
+body[data-font="cyberpunk"] { --font: 'Rajdhani', system-ui, sans-serif; --font-display: 'Orbitron', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 700; --display-tracking: 0.03em; }
+body[data-font="arcade"] { --font: 'Space Grotesk', system-ui, sans-serif; --font-display: 'Press Start 2P', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 400; --display-tracking: 0; }
+body[data-font="pixel"] { --font: 'JetBrains Mono', monospace; --font-display: 'Silkscreen', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 400; --display-tracking: 0.02em; }
+body[data-font="terminal"] { --font: 'JetBrains Mono', monospace; --font-display: 'VT323', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 400; --display-tracking: 0.01em; }
+body[data-font="deportiva"] { --font: 'Instrument Sans', system-ui, sans-serif; --font-display: 'Bebas Neue', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 400; --display-tracking: 0.03em; }
+body[data-font="scifi"] { --font: 'Exo 2', system-ui, sans-serif; --font-display: 'Exo 2', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 700; --display-tracking: 0; }
+body[data-font="moderna"] { --font: 'Bricolage Grotesque', system-ui, sans-serif; --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 700; --display-tracking: -0.02em; }
+body[data-font="geometrica"] { --font: 'Space Grotesk', system-ui, sans-serif; --font-display: 'Unbounded', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 600; --display-tracking: -0.01em; }
+body[data-font="vanguardia"] { --font: 'Space Grotesk', system-ui, sans-serif; --font-display: 'Syne', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 700; --display-tracking: -0.01em; }
+body[data-font="retro"] { --font: 'Nunito', system-ui, sans-serif; --font-display: 'Righteous', system-ui, sans-serif;
+  --display-stretch: 100%; --display-weight: 400; --display-tracking: 0; }
+body[data-font="arcade"] .tile .ph, body[data-font="pixel"] .tile .ph, body[data-font="terminal"] .tile .ph { font-family: var(--font); }
+
+/* Esquemas de color (los mismos que en el móvil) */
+body[data-scheme="p-atrio"] {
+  --fg-rgb: 237, 235, 230;
+  --bg: #121214; --fg: #edebe6; --fg-2: #b0aeab; --fg-3: #7b7a79;
+  --line: rgba(237,235,230,.14); --surface: rgba(27,27,30,0.86); --surface-2: rgba(237,235,230,0.07);
+  --scrim: 18, 18, 20; --accent-base: #7ea3de; --on-accent: #121214; --art-dim: 0.9;
+}
+body[data-scheme="p-atrio-claro"] {
+  --fg-rgb: 30, 29, 34;
+  --bg: #f4f2ed; --fg: #1e1d22; --fg-2: #5a595b; --fg-3: #8d8c8c;
+  --line: rgba(30,29,34,.14); --surface: rgba(251,250,247,0.92); --surface-2: rgba(30,29,34,0.05);
+  --scrim: 244, 242, 237; --accent-base: #1e1d22; --on-accent: #f4f2ed; --art-dim: 0.78;
+}
+body[data-scheme="p-medianoche"] {
+  --fg-rgb: 228, 233, 242;
+  --bg: #0d1220; --fg: #e4e9f2; --fg-2: #a8adb7; --fg-3: #747985;
+  --line: rgba(228,233,242,.14); --surface: rgba(21,28,46,0.86); --surface-2: rgba(228,233,242,0.07);
+  --scrim: 13, 18, 32; --accent-base: #6d9bff; --on-accent: #0d1220; --art-dim: 0.9;
+}
+body[data-scheme="p-bosque"] {
+  --fg-rgb: 225, 235, 227;
+  --bg: #0f1a14; --fg: #e1ebe3; --fg-2: #a6b0a9; --fg-3: #747e77;
+  --line: rgba(225,235,227,.14); --surface: rgba(22,36,28,0.86); --surface-2: rgba(225,235,227,0.07);
+  --scrim: 15, 26, 20; --accent-base: #7cb2d6; --on-accent: #0f1a14; --art-dim: 0.9;
+}
+body[data-scheme="p-oceano"] {
+  --fg-rgb: 221, 238, 243;
+  --bg: #07161d; --fg: #ddeef3; --fg-2: #a1b2b7; --fg-3: #6e7e84;
+  --line: rgba(221,238,243,.14); --surface: rgba(14,34,43,0.86); --surface-2: rgba(221,238,243,0.07);
+  --scrim: 7, 22, 29; --accent-base: #4fb3ff; --on-accent: #07161d; --art-dim: 0.9;
+}
+body[data-scheme="p-lavanda"] {
+  --fg-rgb: 234, 228, 247;
+  --bg: #15121f; --fg: #eae4f7; --fg-2: #aea9bb; --fg-3: #7b7787;
+  --line: rgba(234,228,247,.14); --surface: rgba(30,26,44,0.86); --surface-2: rgba(234,228,247,0.07);
+  --scrim: 21, 18, 31; --accent-base: #86a6f2; --on-accent: #15121f; --art-dim: 0.9;
+}
+body[data-scheme="p-vino"] {
+  --fg-rgb: 242, 227, 229;
+  --bg: #1a0c10; --fg: #f2e3e5; --fg-2: #b6a7a9; --fg-3: #827376;
+  --line: rgba(242,227,229,.14); --surface: rgba(37,18,22,0.86); --surface-2: rgba(242,227,229,0.07);
+  --scrim: 26, 12, 16; --accent-base: #86a2d6; --on-accent: #1a0c10; --art-dim: 0.9;
+}
+body[data-scheme="p-neon"] {
+  --fg-rgb: 241, 233, 255;
+  --bg: #0b0614; --fg: #f1e9ff; --fg-2: #b1a9bd; --fg-3: #797385;
+  --line: rgba(241,233,255,.14); --surface: rgba(20,11,36,0.86); --surface-2: rgba(241,233,255,0.07);
+  --scrim: 11, 6, 20; --accent-base: #00d1ff; --on-accent: #0b0614; --art-dim: 0.9;
+}
+body[data-scheme="p-sakura"] {
+  --fg-rgb: 247, 230, 236;
+  --bg: #1c1216; --fg: #f7e6ec; --fg-2: #baabb0; --fg-3: #85787d;
+  --line: rgba(247,230,236,.14); --surface: rgba(40,24,31,0.86); --surface-2: rgba(247,230,236,0.07);
+  --scrim: 28, 18, 22; --accent-base: #9db5ff; --on-accent: #1c1216; --art-dim: 0.9;
+}
+body[data-scheme="p-sakura-claro"] {
+  --fg-rgb: 58, 30, 40;
+  --bg: #fbf0f3; --fg: #3a1e28; --fg-2: #705961; --fg-3: #9e8b92;
+  --line: rgba(58,30,40,.14); --surface: rgba(255,250,251,0.92); --surface-2: rgba(58,30,40,0.05);
+  --scrim: 251, 240, 243; --accent-base: #3a1e28; --on-accent: #fbf0f3; --art-dim: 0.78;
+}
+body[data-scheme="p-matcha"] {
+  --fg-rgb: 231, 235, 217;
+  --bg: #161a10; --fg: #e7ebd9; --fg-2: #acb0a1; --fg-3: #7a7e70;
+  --line: rgba(231,235,217,.14); --surface: rgba(31,36,23,0.86); --surface-2: rgba(231,235,217,0.07);
+  --scrim: 22, 26, 16; --accent-base: #8eb3cf; --on-accent: #161a10; --art-dim: 0.9;
+}
+body[data-scheme="p-cafe"] {
+  --fg-rgb: 238, 226, 214;
+  --bg: #17110d; --fg: #eee2d6; --fg-2: #b2a79e; --fg-3: #7e756d;
+  --line: rgba(238,226,214,.14); --surface: rgba(34,25,20,0.86); --surface-2: rgba(238,226,214,0.07);
+  --scrim: 23, 17, 13; --accent-base: #8eaacb; --on-accent: #17110d; --art-dim: 0.9;
+}
+body[data-scheme="p-hielo"] {
+  --fg-rgb: 230, 237, 245;
+  --bg: #10161d; --fg: #e6edf5; --fg-2: #aab1b9; --fg-3: #777d85;
+  --line: rgba(230,237,245,.14); --surface: rgba(24,32,42,0.86); --surface-2: rgba(230,237,245,0.07);
+  --scrim: 16, 22, 29; --accent-base: #7db8ff; --on-accent: #10161d; --art-dim: 0.9;
+}
+body[data-scheme="p-hielo-claro"] {
+  --fg-rgb: 26, 37, 51;
+  --bg: #f1f5f9; --fg: #1a2533; --fg-2: #565f6a; --fg-3: #8a919a;
+  --line: rgba(26,37,51,.14); --surface: rgba(255,255,255,0.92); --surface-2: rgba(26,37,51,0.05);
+  --scrim: 241, 245, 249; --accent-base: #1a2533; --on-accent: #f1f5f9; --art-dim: 0.78;
+}
+body[data-scheme="p-atardecer"] {
+  --fg-rgb: 248, 232, 221;
+  --bg: #1c120f; --fg: #f8e8dd; --fg-2: #baaca3; --fg-3: #867972;
+  --line: rgba(248,232,221,.14); --surface: rgba(42,26,21,0.86); --surface-2: rgba(248,232,221,0.07);
+  --scrim: 28, 18, 15; --accent-base: #8da9f5; --on-accent: #1c120f; --art-dim: 0.9;
+}
+body[data-scheme="p-ambar"] {
+  --fg-rgb: 255, 176, 0;
+  --bg: #0e0b05; --fg: #ffb000; --fg-2: #bc8201; --fg-3: #825a03;
+  --line: rgba(255,176,0,.14); --surface: rgba(23,18,10,0.86); --surface-2: rgba(255,176,0,0.07);
+  --scrim: 14, 11, 5; --accent-base: #ffcf66; --on-accent: #0e0b05; --art-dim: 0.9;
+}
+body[data-scheme="p-carmesi"] {
+  --fg-rgb: 245, 227, 227;
+  --bg: #120707; --fg: #f5e3e3; --fg-2: #b5a5a5; --fg-3: #7f7171;
+  --line: rgba(245,227,227,.14); --surface: rgba(29,12,13,0.86); --surface-2: rgba(245,227,227,0.07);
+  --scrim: 18, 7, 7; --accent-base: #8199e0; --on-accent: #120707; --art-dim: 0.9;
+}
+body[data-scheme="p-cobre"] {
+  --fg-rgb: 241, 227, 213;
+  --bg: #15100c; --fg: #f1e3d5; --fg-2: #b3a89d; --fg-3: #7f756c;
+  --line: rgba(241,227,213,.14); --surface: rgba(32,24,18,0.86); --surface-2: rgba(241,227,213,0.07);
+  --scrim: 21, 16, 12; --accent-base: #8fafcf; --on-accent: #15100c; --art-dim: 0.9;
+}
+body[data-scheme="p-pizarra"] {
+  --fg-rgb: 227, 231, 234;
+  --bg: #15181b; --fg: #e3e7ea; --fg-2: #a9adb0; --fg-3: #787b7e;
+  --line: rgba(227,231,234,.14); --surface: rgba(29,33,37,0.86); --surface-2: rgba(227,231,234,0.07);
+  --scrim: 21, 24, 27; --accent-base: #7fa9e6; --on-accent: #15181b; --art-dim: 0.9;
+}
+body[data-scheme="p-ciruela"] {
+  --fg-rgb: 242, 227, 244;
+  --bg: #170e1a; --fg: #f2e3f4; --fg-2: #b5a7b7; --fg-3: #807483;
+  --line: rgba(242,227,244,.14); --surface: rgba(34,20,38,0.86); --surface-2: rgba(242,227,244,0.07);
+  --scrim: 23, 14, 26; --accent-base: #8fa6f2; --on-accent: #170e1a; --art-dim: 0.9;
+}
+body[data-scheme="p-gameboy"] {
+  --fg-rgb: 155, 188, 15;
+  --bg: #0f380f; --fg: #9bbc0f; --fg-2: #74970f; --fg-3: #52770f;
+  --line: rgba(155,188,15,.14); --surface: rgba(24,74,24,0.86); --surface-2: rgba(155,188,15,0.07);
+  --scrim: 15, 56, 15; --accent-base: #8bac0f; --on-accent: #0f380f; --art-dim: 0.9;
+}
+body[data-scheme="p-dracula"] {
+  --fg-rgb: 248, 248, 242;
+  --bg: #282a36; --fg: #f8f8f2; --fg-2: #bebebd; --fg-3: #8c8d90;
+  --line: rgba(248,248,242,.14); --surface: rgba(53,55,71,0.86); --surface-2: rgba(248,248,242,0.07);
+  --scrim: 40, 42, 54; --accent-base: #8be9fd; --on-accent: #282a36; --art-dim: 0.9;
+}
+body[data-scheme="p-dracula-claro"] {
+  --fg-rgb: 31, 31, 31;
+  --bg: #fffbeb; --fg: #1f1f1f; --fg-2: #5e5d58; --fg-3: #939189;
+  --line: rgba(31,31,31,.14); --surface: rgba(255,255,255,0.92); --surface-2: rgba(31,31,31,0.05);
+  --scrim: 255, 251, 235; --accent-base: #1f1f1f; --on-accent: #fffbeb; --art-dim: 0.78;
+}
+body[data-scheme="p-nord"] {
+  --fg-rgb: 236, 239, 244;
+  --bg: #2e3440; --fg: #eceff4; --fg-2: #b7bbc2; --fg-3: #898e96;
+  --line: rgba(236,239,244,.14); --surface: rgba(59,66,82,0.86); --surface-2: rgba(236,239,244,0.07);
+  --scrim: 46, 52, 64; --accent-base: #88c0d0; --on-accent: #2e3440; --art-dim: 0.9;
+}
+body[data-scheme="p-nord-claro"] {
+  --fg-rgb: 46, 52, 64;
+  --bg: #e5e9f0; --fg: #2e3440; --fg-2: #616771; --fg-3: #8d929c;
+  --line: rgba(46,52,64,.14); --surface: rgba(236,239,244,0.92); --surface-2: rgba(46,52,64,0.05);
+  --scrim: 229, 233, 240; --accent-base: #2e3440; --on-accent: #e5e9f0; --art-dim: 0.78;
+}
+body[data-scheme="p-catppuccin"] {
+  --fg-rgb: 205, 214, 244;
+  --bg: #181825; --fg: #cdd6f4; --fg-2: #9aa1ba; --fg-3: #6f7388;
+  --line: rgba(205,214,244,.14); --surface: rgba(30,30,46,0.86); --surface-2: rgba(205,214,244,0.07);
+  --scrim: 24, 24, 37; --accent-base: #89b4fa; --on-accent: #181825; --art-dim: 0.9;
+}
+body[data-scheme="p-catppuccin-claro"] {
+  --fg-rgb: 76, 79, 105;
+  --bg: #e6e9ef; --fg: #4c4f69; --fg-2: #777a8f; --fg-3: #9c9faf;
+  --line: rgba(76,79,105,.14); --surface: rgba(239,241,245,0.92); --surface-2: rgba(76,79,105,0.05);
+  --scrim: 230, 233, 239; --accent-base: #4c4f69; --on-accent: #e6e9ef; --art-dim: 0.78;
+}
+body[data-scheme="p-gruvbox"] {
+  --fg-rgb: 235, 219, 178;
+  --bg: #282828; --fg: #ebdbb2; --fg-2: #b4a98b; --fg-3: #867e6a;
+  --line: rgba(235,219,178,.14); --surface: rgba(50,48,47,0.86); --surface-2: rgba(235,219,178,0.07);
+  --scrim: 40, 40, 40; --accent-base: #83a598; --on-accent: #282828; --art-dim: 0.9;
+}
+body[data-scheme="p-gruvbox-claro"] {
+  --fg-rgb: 60, 56, 54;
+  --bg: #fbf1c7; --fg: #3c3836; --fg-2: #716c5f; --fg-3: #9f9881;
+  --line: rgba(60,56,54,.14); --surface: rgba(249,245,215,0.92); --surface-2: rgba(60,56,54,0.05);
+  --scrim: 251, 241, 199; --accent-base: #3c3836; --on-accent: #fbf1c7; --art-dim: 0.78;
+}
+body[data-scheme="p-solarized"] {
+  --fg-rgb: 147, 161, 161;
+  --bg: #002b36; --fg: #93a1a1; --fg-2: #6a8083; --fg-3: #476469;
+  --line: rgba(147,161,161,.14); --surface: rgba(7,54,66,0.86); --surface-2: rgba(147,161,161,0.07);
+  --scrim: 0, 43, 54; --accent-base: #268bd2; --on-accent: #002b36; --art-dim: 0.9;
+}
+body[data-scheme="p-solarized-claro"] {
+  --fg-rgb: 88, 110, 117;
+  --bg: #eee8d5; --fg: #586e75; --fg-2: #829090; --fg-3: #a6ada7;
+  --line: rgba(88,110,117,.14); --surface: rgba(253,246,227,0.92); --surface-2: rgba(88,110,117,0.05);
+  --scrim: 238, 232, 213; --accent-base: #586e75; --on-accent: #eee8d5; --art-dim: 0.78;
+}
+body[data-scheme="p-tokyonight"] {
+  --fg-rgb: 192, 202, 245;
+  --bg: #1a1b26; --fg: #c0caf5; --fg-2: #9299bb; --fg-3: #6a6f89;
+  --line: rgba(192,202,245,.14); --surface: rgba(36,40,59,0.86); --surface-2: rgba(192,202,245,0.07);
+  --scrim: 26, 27, 38; --accent-base: #7aa2f7; --on-accent: #1a1b26; --art-dim: 0.9;
+}
+body[data-scheme="p-tokyonight-claro"] {
+  --fg-rgb: 55, 96, 191;
+  --bg: #e1e2e7; --fg: #3760bf; --fg-2: #6784ca; --fg-3: #8fa4d4;
+  --line: rgba(55,96,191,.14); --surface: rgba(237,238,242,0.92); --surface-2: rgba(55,96,191,0.05);
+  --scrim: 225, 226, 231; --accent-base: #3760bf; --on-accent: #e1e2e7; --art-dim: 0.78;
+}
+body[data-scheme="p-rosepine"] {
+  --fg-rgb: 224, 222, 244;
+  --bg: #191724; --fg: #e0def4; --fg-2: #a8a6ba; --fg-3: #797788;
+  --line: rgba(224,222,244,.14); --surface: rgba(31,29,46,0.86); --surface-2: rgba(224,222,244,0.07);
+  --scrim: 25, 23, 36; --accent-base: #9ccfd8; --on-accent: #191724; --art-dim: 0.9;
+}
+body[data-scheme="p-rosepine-claro"] {
+  --fg-rgb: 70, 66, 97;
+  --bg: #faf4ed; --fg: #464261; --fg-2: #787488; --fg-3: #a49faa;
+  --line: rgba(70,66,97,.14); --surface: rgba(255,250,243,0.92); --surface-2: rgba(70,66,97,0.05);
+  --scrim: 250, 244, 237; --accent-base: #464261; --on-accent: #faf4ed; --art-dim: 0.78;
+}
+body[data-scheme="p-everforest"] {
+  --fg-rgb: 211, 198, 170;
+  --bg: #2d353b; --fg: #d3c6aa; --fg-2: #a59d8b; --fg-3: #7d7b70;
+  --line: rgba(211,198,170,.14); --surface: rgba(52,63,68,0.86); --surface-2: rgba(211,198,170,0.07);
+  --scrim: 45, 53, 59; --accent-base: #7fbbb3; --on-accent: #2d353b; --art-dim: 0.9;
+}
+body[data-scheme="p-everforest-claro"] {
+  --fg-rgb: 92, 106, 114;
+  --bg: #efebd4; --fg: #5c6a72; --fg-2: #858e8d; --fg-3: #a8ada5;
+  --line: rgba(92,106,114,.14); --surface: rgba(253,246,227,0.92); --surface-2: rgba(92,106,114,0.05);
+  --scrim: 239, 235, 212; --accent-base: #5c6a72; --on-accent: #efebd4; --art-dim: 0.78;
+}
