@@ -228,6 +228,20 @@ shot 33_compartir_guia 1
 tap "Juego de Prueba"; sleep 6; alive "compartir"
 must $SIM at gonzalo secreto1 suite/lib 'deadlock.wiki'
 echo "   la web está en el juego del PC" | tee -a "$LOG"
+
+step "Guías en la ficha del juego: se abren dentro de la app"
+sleep 3
+top
+tap "Videojuegos"; sleep 2
+tap "Juego de Prueba"; sleep 3
+must see "Guías" 10
+must see "deadlock.wiki" 15
+shot 34_ficha_guias 1; alive "ficha guias"
+tap "deadlock.wiki"; sleep 8
+shot 35_guia_abierta 1; alive "guia abierta"
+must see "Abrir en el navegador" 5
+echo "   la guía se abre dentro de Atrio" | tee -a "$LOG"
+adb shell input keyevent 4; sleep 2
 pkill -f lanzar-atrio || true
 
 step "OK: la app no se ha cerrado en ningún paso"

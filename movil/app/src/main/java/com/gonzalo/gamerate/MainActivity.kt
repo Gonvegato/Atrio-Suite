@@ -54,6 +54,8 @@ sealed interface Screen {
     object Suite : Screen
     /** Una captura a pantalla completa; [back] es adonde se vuelve. */
     class ShotView(val shot: Shot, val back: Screen) : Screen
+    /** Una guía (web) abierta dentro de la app; [back] es adonde se vuelve. */
+    class Web(val guide: Guide, val back: Screen) : Screen
     /** Ficha de tu pareja abierta desde el menú o desde su calendario. */
     class PartnerItem(val kind: Int, val id: Long) : Screen
 }

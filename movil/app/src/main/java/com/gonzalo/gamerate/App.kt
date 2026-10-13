@@ -643,6 +643,8 @@ fun App(
     var memoFor by remember { mutableStateOf<Pair<Play, Shot?>?>(null) }
     var segFor by remember { mutableStateOf<Play?>(null) }
     var guideSheet by remember { mutableStateOf<PcGame?>(null) }
+    // Las guías se abren dentro de la app, encima de lo que estés viendo
+    SideEffect { Guides.opener = { g -> guideSheet = null; screen = Screen.Web(g, screen.let { if (it is Screen.Web) it.back else it }) } }
     var skipped by remember { mutableStateOf(store.segsSkipped) }
 
     /** La ficha en curso de un juego que se está jugando en el PC (si no la tienes, se crea en «Jugando»). */
@@ -799,6 +801,7 @@ fun App(
     BackHandler(enabled = section != -1 || screen !is Screen.Home || pv) {
         val cur = screen
         if (cur is Screen.ShotView) { screen = cur.back }
+        else if (cur is Screen.Web) { screen = cur.back }
         else if (screen !is Screen.Home) { screen = Screen.Home } else if (section != -1) { section = -1 } else togglePartner()
     }
 
@@ -1241,6 +1244,8 @@ fun App(
                     onOpenPlay = { p -> section = 0; screen = Screen.PlayDetail(p) },
                     say = { say(it) }
                 )
+
+                is Screen.Web -> WebScreen(s.guide) { screen = s.back }
 
                 is Screen.ShotView -> ShotViewer(
                     s.shot, onBack = { screen = s.back },

@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 private fun mget(url: String, bearer: String = ""): String {
     val c = URL(url).openConnection() as HttpURLConnection
-    c.setRequestProperty("User-Agent", "Atrio/4.3 (app personal; Android)")
+    c.setRequestProperty("User-Agent", "Atrio/4.4 (app personal; Android)")
     c.setRequestProperty("Accept", "application/json")
     if (bearer.isNotEmpty()) c.setRequestProperty("Authorization", "Bearer $bearer")
     c.connectTimeout = 15000

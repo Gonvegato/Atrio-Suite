@@ -105,6 +105,11 @@ fun PlayDetailScreen(
                     upd(p.copy(status = 2, end = if (p.end == 0L) today() else p.end))
                 }
             }
+            // Guías a mano, lo primero: para tenerlas en el móvil mientras juegas en el PC
+            if (kind.isGame) {
+                Spacer(Modifier.height(18.dp))
+                GuidesSection(p.id, p.name)
+            }
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(p.creator, { upd(p.copy(creator = it)) },
                 label = { Text(kind.creatorWord) }, singleLine = true,

@@ -751,7 +751,10 @@ fun PcGameSheet(g: PcGame, pcOnline: Boolean, onPlay: () -> Unit, onDismiss: () 
                     Spacer(Modifier.height(6.dp))
                     if (g.links.isEmpty()) Text("Aún no tiene ninguna. Añade una aquí, compártela desde el navegador (Compartir → Atrio) o guárdala en el PC desde Guías.", color = Muted, fontSize = 13.sp)
                     g.links.forEach { (n, u) ->
-                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { openUrl(ctx, u) }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable {
+                            val op = Guides.opener
+                            if (op != null) { onDismiss(); op(Guide(n, u, "pc")) } else openUrl(ctx, u)
+                        }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(n.ifBlank { Uri.parse(u).host ?: u }, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(Uri.parse(u).host ?: u, color = Muted, fontSize = 12.sp, maxLines = 1)

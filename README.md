@@ -68,6 +68,10 @@ Las dos usan la misma cuenta de Atrio (Firebase) y se hablan en **tiempo real** 
 42. **Compartir → Atrio** desde el navegador del móvil: elige el juego y la web aparece en su página del PC
     (le llega aunque el PC esté apagado en ese momento).
 43. En la tarjeta en directo, botón **Guías** del juego que se está jugando.
+44. En el móvil, la **ficha de cada juego** (en curso o valorado) tiene el apartado **Guías** arriba del todo:
+    tarjetas grandes con las guías del PC, las guardadas en el móvil y las sugeridas, y «Buscar guías».
+45. Al tocar una guía se abre **dentro de la app**, a pantalla completa, para tenerla en el móvil mientras juegas
+    en el PC (atrás, recargar, compartir, abrir en el navegador). Mantener pulsada: abrirla en el PC o guardarla.
 
 **Control y privacidad** (Atrio en el PC → Ajustes → Móvil)
 33. Permitir o no capturas, lanzar juegos y energía desde el móvil.
