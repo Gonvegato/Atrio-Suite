@@ -8,6 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
+      # El emulador necesita ~7 GB libres y Electron + Gradle ocupan mucho: se quita lo que no se usa del runner
+      - name: Liberar espacio
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL /usr/local/lib/android/sdk/ndk /usr/share/swift /usr/local/.ghcup || true
+          df -h /
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
@@ -40,6 +45,7 @@ jobs:
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           disable-animations: false
+          disk-size: 4096M
           script: bash herramientas/humo.sh
       - name: Errores
         if: failure()
