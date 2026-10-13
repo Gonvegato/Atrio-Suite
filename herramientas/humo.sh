@@ -46,7 +46,7 @@ PY
 type() { adb shell input text "$1"; sleep 0.8; }
 
 step "Instalar"
-adb install -r app/build/outputs/apk/release/app-release.apk | tee -a "$LOG"
+adb install -r movil/app/build/outputs/apk/release/app-release.apk | tee -a "$LOG"
 adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS 2>/dev/null
 step "Abrir"
 adb shell am start -W -n "$PKG/.MainActivity" | tee -a "$LOG"
@@ -104,10 +104,10 @@ seek() {
   echo "   no aparece «$1»" | tee -a "$LOG"; return 1
 }
 must() { if ! "$@"; then echo "FALLO: $*" | tee -a "$LOG"; adb logcat -d | grep -E "AndroidRuntime|FATAL|gamerate" -A10 | tail -80 > "$OUT/crash.txt"; exit 1; fi; }
-SIM="node scripts/fb_sim.js"
+SIM="node herramientas/fb_sim.js"
 
 step "Cuentas: Firebase de mentira"
-node scripts/fakefirebase.js 9000 "$OUT/fb.json" > "$OUT/fb.log" 2>&1 &
+node herramientas/fakefirebase.js 9000 "$OUT/fb.json" > "$OUT/fb.log" 2>&1 &
 sleep 2
 adb shell am force-stop "$PKG"; sleep 1
 adb shell am start -W -n "$PKG/.MainActivity" --es fbtest http://10.0.2.2:9000 | tee -a "$LOG"
@@ -155,6 +155,65 @@ seek "Contraseña"; tap "Contraseña" && type "secreto1" && kb
 seek "Entrar"; tap "Entrar"; sleep 5; shot 23_entrar_dialogo; alive "entrar"
 tap "Juntarlo todo"; sleep 6; shot 24_juntado; alive "juntar"
 must seek "Has entrado como gonzalo"
+
+# ---------------- La suite: el móvil con Atrio de verdad (bajo Xvfb) en el mismo ordenador ----------------
+# ¿Aparece ese texto en la pantalla (en cualquier parte)?
+see() {
+  for i in $(seq 1 ${2:-20}); do
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+    adb shell cat /sdcard/ui.xml > "$OUT/ui.xml"
+    grep -q "$1" "$OUT/ui.xml" && return 0
+    sleep 2
+  done
+  echo "   no aparece «$1»" | tee -a "$LOG"; return 1
+}
+top() { for i in 1 2 3 4; do adb shell input swipe 500 700 500 1700 250; sleep 0.4; done; }
+
+step "Suite: Atrio se conecta y el móvil lo ve en directo"
+node herramientas/lanzar-atrio.js http://127.0.0.1:9000 gonzalo secreto1 "$OUT" > "$OUT/lanzar-atrio.log" 2>&1 &
+adb shell input keyevent 4; sleep 2
+top
+must see "Conectado, sin jugar" 30
+shot 25_suite_conectado 1; alive "suite conectado"
+
+step "Suite: captura del PC a calidad original desde el móvil"
+tap "Captura"; sleep 3
+must see "PNG original" 20
+shot 26_captura 2; alive "captura"
+must $SIM at gonzalo secreto1 suite/shots '"got"'
+echo "   la captura ha llegado entera y el PC sabe que el móvil la tiene" | tee -a "$LOG"
+adb shell input keyevent 4; sleep 2
+
+step "Suite: lanzar un juego del PC desde el móvil"
+tap "Mando"; sleep 2; shot 27_mando 1; alive "mando"
+tap "Biblioteca"; sleep 2; shot 28_biblioteca_pc 1
+tap "Juego de Prueba"; sleep 4
+adb shell input keyevent 4; sleep 2
+top
+must see "EN DIRECTO" 30
+shot 29_en_directo 2; alive "en directo"
+
+step "Suite: apunte rápido mientras se juega"
+tap "Apunte"; sleep 2
+tap "Lo que está pasando" && type "Prueba%sde%sapunte"; adb shell input keyevent 4; sleep 1
+shot 30_apunte 1
+tap "Guardar"; sleep 6; alive "apunte"
+must $SIM has gonzalo secreto1 "Prueba de apunte"
+echo "   el apunte está en la cuenta" | tee -a "$LOG"
+
+step "Suite: al cerrar el juego, la partida llega para valorarla"
+sleep 30
+pkill -f juego-de-prueba || true
+top
+must see "POR VALORAR" 40
+shot 31_por_valorar 1; alive "por valorar"
+tap "Valorar"; sleep 3
+must see "Valorando" 10
+shot 32_valorar_partida 1
+seek "Guardar valoración"; tap "Guardar valoración"; sleep 6; alive "valorar"
+must $SIM has gonzalo secreto1 '"seg":"a'
+echo "   la partida tiene su valoración" | tee -a "$LOG"
+pkill -f lanzar-atrio || true
 
 step "OK: la app no se ha cerrado en ningún paso"
 adb logcat -d | grep -E "AndroidRuntime|FATAL" -A20 > "$OUT/errores_log.txt" || true

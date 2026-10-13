@@ -1,0 +1,56 @@
+name: Atrio (Windows)
+on:
+  push:
+    paths: ['escritorio/**', '.github/workflows/escritorio-windows.yml']
+  workflow_dispatch:
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: escritorio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Dependencias
+        run: npm ci
+      - name: Instalador
+        run: npx electron-builder --win nsis --publish never
+      - name: Prueba (Steam y Heroic de mentira, horas y capturas)
+        shell: pwsh
+        run: ./ci/prueba-windows.ps1
+      - name: Instalar y comprobar el arranque al iniciar sesión
+        shell: pwsh
+        run: |
+          $inst = Get-ChildItem dist\*-Instalador.exe | Select-Object -First 1
+          Start-Process -FilePath $inst.FullName -ArgumentList '/S' -Wait
+          $exe = Join-Path $env:LOCALAPPDATA 'Programs\atrio\Atrio.exe'
+          if (-not (Test-Path $exe)) { Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Programs') -Recurse -Filter Atrio.exe | Select-Object -First 3 | Out-Host; throw 'No se ha instalado' }
+          Get-Process Atrio -ErrorAction SilentlyContinue | Stop-Process -Force
+          Remove-Item -Force (Join-Path $env:LOCALAPPDATA 'Atrio-datos\config\atrio\config.json')
+          $p = Start-Process -FilePath $exe -ArgumentList '--ventana' -PassThru
+          Start-Sleep -Seconds 25
+          Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' | Out-Host
+          $v = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run').Atrio
+          Get-Process Atrio -ErrorAction SilentlyContinue | Stop-Process -Force
+          Get-Content (Join-Path $env:LOCALAPPDATA 'Atrio-datos\cache\atrio\atrio.log')
+          if (-not $v) { throw 'No se ha activado el arranque al iniciar sesión' }
+          Write-Host "OK: arranque automático -> $v"
+      - name: Guardar capturas y registros
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path capturas | Out-Null
+          Copy-Item (Join-Path $env:LOCALAPPDATA 'Atrio-datos\cache\atrio\atrio.log') capturas\ -ErrorAction SilentlyContinue
+          Copy-Item (Join-Path $env:LOCALAPPDATA 'Atrio-datos\data\atrio\playlog.json') capturas\ -ErrorAction SilentlyContinue
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capturas
+          path: escritorio/capturas
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Atrio-instalador-Windows
+          path: escritorio/dist/*-Instalador.exe

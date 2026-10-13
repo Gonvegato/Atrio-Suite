@@ -5,6 +5,7 @@
 //   node fb_sim.js del <usuario> <contraseña> <id>            lo borra (con su marca de borrado)
 //   node fb_sim.js pair <usuario> <contraseña> <nombre> <usuarioPareja>   crea la cuenta de la pareja y comparte
 //   node fb_sim.js has <usuario> <contraseña> <texto>         ¿lo último del móvil contiene ese texto? (sale con 0 o 1)
+//   node fb_sim.js at <usuario> <contraseña> <sitio> <texto>  ¿/users/<uid>/<sitio> contiene ese texto? (la suite)
 const B = process.env.FB || 'http://127.0.0.1:9000';
 const MAIL = (u) => `${u}@ronron.example.com`;
 const DEV = 'atrio-prueba';
@@ -53,6 +54,13 @@ async function upload(s, data, name) {
     }
     await upload(s, d, l.name);
     console.log(`${cmd} ok`);
+  } else if (cmd === 'at') {
+    // ¿En ese sitio de la cuenta (p. ej. suite/shots) aparece ese texto? (sale con 0 o 1)
+    const s = await login(u, p);
+    const v = await db(s, 'GET', `/users/${s.localId}/${rest[0]}`);
+    const ok = JSON.stringify(v || null).includes(rest[1]);
+    console.log(ok ? 'sí' : 'no');
+    process.exit(ok ? 0 : 1);
   } else if (cmd === 'pair') {
     const s = await login(u, p, true);
     try { await db(s, 'PUT', `/usernames/${u}`, s.localId); } catch { /* ya reservado */ }

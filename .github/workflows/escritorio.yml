@@ -1,0 +1,38 @@
+name: Atrio (Linux)
+on:
+  push:
+    paths: ['escritorio/**', 'herramientas/**', '.github/workflows/escritorio.yml']
+  workflow_dispatch:
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Dependencias
+        working-directory: escritorio
+        run: npm ci && node node_modules/electron/install.js
+      - name: Prueba de la suite (Firebase de mentira + Atrio de verdad + móvil simulado)
+        run: node herramientas/prueba-suite.js
+        env:
+          OUT: ${{ github.workspace }}/prueba-suite
+      - name: Capturas de la interfaz
+        if: always()
+        run: node herramientas/capturas-atrio.js capturas
+      - name: AppImage
+        working-directory: escritorio
+        run: npx electron-builder --linux AppImage --publish never
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: atrio-capturas-y-registros
+          path: |
+            capturas
+            prueba-suite/*.log
+            prueba-suite/*.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Atrio-AppImage
+          path: escritorio/dist/*.AppImage
