@@ -143,10 +143,20 @@ Atrio en el móvil (emulador Android en GitHub Actions, con Atrio de verdad al l
 [por valorar](docs/capturas/31_por_valorar.png) ·
 [valorar la partida](docs/capturas/32_valorar_partida.png) ·
 [Guías en la ficha del juego](docs/capturas/34_ficha_guias.png) ·
-[guía abierta en el móvil](docs/capturas/35_guia_abierta.png)
+[guía abierta en el móvil](docs/capturas/35_guia_abierta.png) ·
+[la guía sigue al volver a la app](docs/capturas/36_guia_al_volver.png) ·
+[streaming sin Moonlight](docs/capturas/37_falta_moonlight.png) ·
+[Estilo](docs/capturas/40_estilo.png) ·
+[estilo Arcade](docs/capturas/42_arcade.png) ·
+[paletas](docs/capturas/43_paletas.png) ·
+[iconos de la app](docs/capturas/47_iconos.png)
 
 Atrio en el PC: [panel del móvil](docs/capturas/02-panel-suite.png) ·
 [ficha con partidas por valorar](docs/capturas/06-ficha-ronron.png) ·
 [ajustes del móvil](docs/capturas/07-ajustes-suite.png) ·
 [Guías: inicio](docs/capturas/08-guias-inicio.png) ·
-[Guías: web guardada](docs/capturas/10-guias-guardada.png)
+[Guías: web guardada](docs/capturas/10-guias-guardada.png) ·
+[Apariencia](docs/capturas/11-apariencia.png) ·
+[Streaming](docs/capturas/12-ajustes-streaming.png) ·
+estilos [Cyberpunk](docs/capturas/13-estilo-cyberpunk.png), [Arcade](docs/capturas/14-estilo-arcade.png),
+[Catppuccin Latte](docs/capturas/16-estilo-latte.png) y [Fantasía](docs/capturas/17-estilo-fantasia.png)
