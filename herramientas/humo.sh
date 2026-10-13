@@ -221,12 +221,12 @@ seek "Guardar valoración"; tap "Guardar valoración"; sleep 6; alive "valorar"
 must $SIM has gonzalo secreto1 '"seg":"a'
 echo "   la partida tiene su valoración" | tee -a "$LOG"
 step "Guías: compartir una web desde el navegador del móvil a un juego del PC"
-adb shell am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "https://deadlock.wiki/Heroes" -n "$PKG/.MainActivity" >/dev/null
+adb shell am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "https://example.com/" -n "$PKG/.MainActivity" >/dev/null
 sleep 3
 must see "Guardar como guía" 10
 shot 33_compartir_guia 1
 tap "Juego de Prueba"; sleep 6; alive "compartir"
-must $SIM at gonzalo secreto1 suite/lib 'deadlock.wiki'
+must $SIM at gonzalo secreto1 suite/lib 'example.com'
 echo "   la web está en el juego del PC" | tee -a "$LOG"
 
 step "Guías en la ficha del juego: se abren dentro de la app"
@@ -235,11 +235,12 @@ top
 tap "Videojuegos"; sleep 2
 tap "Juego de Prueba"; sleep 3
 must see "Guías" 10
-must see "deadlock.wiki" 15
+must see "example.com" 15
 shot 34_ficha_guias 1; alive "ficha guias"
-tap "deadlock.wiki"; sleep 8
+tap "example.com"; sleep 10
 shot 35_guia_abierta 1; alive "guia abierta"
 must see "Abrir en el navegador" 5
+must see "Example Domain" 20
 echo "   la guía se abre dentro de Atrio" | tee -a "$LOG"
 adb shell input keyevent 4; sleep 2
 pkill -f lanzar-atrio || true
