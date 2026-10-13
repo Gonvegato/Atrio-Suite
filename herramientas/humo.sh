@@ -267,5 +267,29 @@ echo "   cerrada y reabierta, sigue en su sitio" | tee -a "$LOG"
 adb shell input keyevent 4; sleep 2
 pkill -f lanzar-atrio || true
 
+step "Estilo: combinaciones, colores, letras e icono de la app"
+adb shell am start -W -n "$PKG/.MainActivity" >/dev/null; sleep 2
+for i in 1 2 3 4 5; do see "Ajustes" 1 && break; adb shell input keyevent 4; sleep 1.5; done
+tap "Ajustes"; sleep 2
+must see "Estilo" 10
+tap "Estilo"; sleep 2
+must see "Combinaciones" 10
+shot 40_estilo 2; alive "estilo"
+tap "Revista"; sleep 3; shot 41_revista 2; alive "revista"
+tap "Arcade"; sleep 3; shot 42_arcade 2; alive "arcade"
+tap "Colores"; sleep 2; shot 43_paletas 2
+tap "Medianoche"; sleep 3; shot 44_medianoche 2; alive "paleta"
+tap "Títulos"; sleep 3; shot 45_letras 2
+tap "Tamaño"; sleep 1; tap "Grande"; sleep 2; shot 46_grande 2; tap "Normal"; sleep 1
+tap "Icono"; sleep 2; shot 47_iconos 2
+tap "Neón"; sleep 4; alive "icono"
+adb shell dumpsys package "$PKG" > "$OUT/paquete.txt" 2>/dev/null || true
+icono_neon() { grep -A30 "enabledComponents" "$OUT/paquete.txt" | grep -q "IconNeon"; }
+must icono_neon
+echo "   el icono de la app ha cambiado a Neón" | tee -a "$LOG"
+tap "Atrio"; sleep 3
+tap "Combinaciones"; sleep 1; tap "Atrio"; sleep 2
+adb shell input keyevent 4; sleep 1
+
 step "OK: la app no se ha cerrado en ningún paso"
 adb logcat -d | grep -E "AndroidRuntime|FATAL" -A20 > "$OUT/errores_log.txt" || true

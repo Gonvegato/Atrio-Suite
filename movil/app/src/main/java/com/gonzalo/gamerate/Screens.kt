@@ -380,6 +380,8 @@ fun SettingsScreen(
         Spacer(Modifier.height(18.dp))
 
         SettingsSection("Apariencia", 100) {
+            StyleEntry(themeMode, onTheme)
+            Spacer(Modifier.height(16.dp))
             Text("Tema", fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

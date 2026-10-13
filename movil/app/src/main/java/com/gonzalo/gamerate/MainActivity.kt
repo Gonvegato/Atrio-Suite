@@ -89,6 +89,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) read(intent)
         val store = Store(this)
         Mode.themeMode = store.themeMode
+        Skin.load(this)
         store.forgetGemini()
         // Solo para la prueba automática en el emulador: Firebase de mentira en el ordenador que lo ejecuta (10.0.2.2).
         intent?.getStringExtra("fbtest")?.takeIf { it.startsWith("http://10.0.2.2:") }?.let {
@@ -165,8 +166,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
             Box(Modifier.fillMaxSize()) {
-                MaterialTheme(colorScheme = appColors(), typography = AppTypography) {
-                    App(store, openId, openPartner, openGo, openRate, shareUrl, shareTitle, { shareUrl = "" }) { openId = 0L; openPartner = false; openGo = ""; openRate = "" }
+                // Tamaño del texto elegido en Ajustes → Estilo (encima del que tenga el sistema)
+                val dens = androidx.compose.ui.platform.LocalDensity.current
+                androidx.compose.runtime.CompositionLocalProvider(
+                    androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(dens.density, dens.fontScale * Skin.textScale)
+                ) {
+                    MaterialTheme(colorScheme = appColors(), typography = AppTypography) {
+                        App(store, openId, openPartner, openGo, openRate, shareUrl, shareTitle, { shareUrl = "" }) { openId = 0L; openPartner = false; openGo = ""; openRate = "" }
+                    }
                 }
                 val img = overlay
                 if (img != null) {

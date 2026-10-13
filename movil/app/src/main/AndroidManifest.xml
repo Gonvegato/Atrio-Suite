@@ -25,18 +25,182 @@
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard|uiMode|density">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             <!-- Compartir → Atrio: una web (guía, build…) para guardarla en un juego del PC -->
             <intent-filter android:label="Guardar como guía en Atrio">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
-            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
+        <!-- Iconos de la app (Ajustes → Estilo → Icono): uno solo activo; cada uno abre la misma pantalla -->
+        <activity-alias
+            android:name=".IconAtrio"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_atrio"
+            android:roundIcon="@mipmap/icon_atrio"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconClasico"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_clasico"
+            android:roundIcon="@mipmap/icon_clasico"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconNoche"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_noche"
+            android:roundIcon="@mipmap/icon_noche"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconNeon"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_neon"
+            android:roundIcon="@mipmap/icon_neon"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconPapel"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_papel"
+            android:roundIcon="@mipmap/icon_papel"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconArcade"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_arcade"
+            android:roundIcon="@mipmap/icon_arcade"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconOro"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_oro"
+            android:roundIcon="@mipmap/icon_oro"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconOceano"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_oceano"
+            android:roundIcon="@mipmap/icon_oceano"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconSakura"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_sakura"
+            android:roundIcon="@mipmap/icon_sakura"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconFuego"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_fuego"
+            android:roundIcon="@mipmap/icon_fuego"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconBosque"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_bosque"
+            android:roundIcon="@mipmap/icon_bosque"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconOled"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon_oled"
+            android:roundIcon="@mipmap/icon_oled"
+            android:label="Atrio"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity-alias>
         <!-- Guías: una web dentro de Atrio (misma tarea: si sales y vuelves, sigue abierta) -->
         <activity
             android:name=".WebActivity"

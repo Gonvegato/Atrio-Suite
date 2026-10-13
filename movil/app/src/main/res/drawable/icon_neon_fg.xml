@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono «Neón»: el arco de Atrio (la puerta) sobre su base, dentro de la zona segura del icono adaptativo -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- La luz que sale por la puerta -->
+    <path android:pathData="M43.6,76 V44.2 A10.4,10.4 0 0 1 64.4,44.2 V76 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="54" android:startY="34" android:endX="54" android:endY="76"
+                android:startColor="#00FF2E97" android:endColor="#99FF2E97" />
+        </aapt:attr>
+    </path>
+    <path android:strokeColor="#FF2E97" android:strokeWidth="6" android:strokeLineCap="butt" android:pathData="M40.5,76 V44 A13.5,13.5 0 0 1 67.5,44 V76" />
+    <path android:strokeColor="#00D1FF" android:strokeWidth="3.2" android:strokeLineCap="butt" android:pathData="M37.5,77.6 H70.5" />
+</vector>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono «Sakura»: el arco de Atrio (la puerta) sobre su base, dentro de la zona segura del icono adaptativo -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:strokeColor="#8C2F4E" android:strokeWidth="6" android:strokeLineCap="butt" android:pathData="M40.5,76 V44 A13.5,13.5 0 0 1 67.5,44 V76" />
+    <path android:strokeColor="#D94A73" android:strokeWidth="3.2" android:strokeLineCap="butt" android:pathData="M37.5,77.6 H70.5" />
+</vector>
