@@ -124,8 +124,8 @@ async function startService() {
   await refresh();
   if (info.running) return info;
   if (!info.installed) throw new Error('Sunshine no está instalado en este PC. En Atrio: Ajustes → Streaming.');
-  const tries = process.platform === 'win32'
-    ? [[dirs().find((x) => fs.existsSync(x.bin)).bin, []]]
+  // Linux: su servicio de usuario. Windows: normalmente ya va como servicio; si no, se abre el programa (abajo)
+  const tries = process.platform === 'win32' ? []
     : [['systemctl', ['--user', 'start', 'app-dev.lizardbyte.app.Sunshine.service']], ['systemctl', ['--user', 'start', 'sunshine.service']]];
   for (const [bin, args] of tries) {
     const r = await run(bin, args, 10000);
@@ -135,8 +135,13 @@ async function startService() {
   for (let i = 0; i < 20 && !(await refresh()).running; i++) await new Promise((r) => setTimeout(r, 750));
   if (!info.running) {
     // Sin servicio: el programa directamente (sigue vivo aunque se cierre Atrio)
-    if (info.kind === 'flatpak') await require('./launcher').spawnDetached('flatpak', ['run', FLATPAK]).catch(() => {});
-    else if (info.kind === 'sys') await require('./launcher').spawnDetached(which('sunshine'), []).catch(() => {});
+    const L = require('./launcher');
+    if (info.kind === 'flatpak') await L.spawnDetached('flatpak', ['run', FLATPAK]).catch(() => {});
+    else if (info.kind === 'sys') await L.spawnDetached(which('sunshine'), []).catch(() => {});
+    else if (info.kind === 'win') {
+      const d = dirs().find((x) => x.bin && fs.existsSync(x.bin));
+      if (d) await L.spawnDetached(d.bin, [], { cwd: path.dirname(d.bin) }).catch(() => {});
+    }
     for (let i = 0; i < 24 && !(await refresh()).running; i++) await new Promise((r) => setTimeout(r, 750));
   }
   if (!info.running) throw new Error('No he podido arrancar Sunshine. Ábrelo a mano una vez y vuelve a probar.');
