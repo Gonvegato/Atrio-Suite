@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "config": {
+      ".read": true,
+      "webKey": { ".write": "auth != null && !data.exists()" }
+    },
+    "usernames": {
+      "$name": {
+        ".read": "auth != null",
+        ".write": "auth != null && !data.exists() && newData.val() === auth.uid"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || data.child('partner').val() === auth.uid)",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "couples": { ".read": true, ".write": true }
+  }
+}
