@@ -536,7 +536,7 @@ fun SuiteScreen(
     var sheet by remember { mutableStateOf<PcGame?>(null) }
     val pc = Suite.target()
     fun act(op: String, args: JSONObject = JSONObject(), done: (Boolean, String) -> Unit = { _, m -> say(m) }) {
-        scope.launch { val (ok, m) = Suite.send(op, args, pc?.dev); done(ok, m) }
+        scope.launch { val (ok, m) = Suite.send(op, args, pc?.dev, if (op == "power") 25_000 else 45_000); done(ok, m) }
     }
     fun shot() {
         if (shooting) return

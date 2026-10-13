@@ -466,17 +466,42 @@ async function doPower(action) {
       });
     });
   }
-  return new Promise((resolve, reject) => {
-    execFile('systemctl', [cmd], { env: require('./launcher').cleanEnv ? require('./launcher').cleanEnv() : process.env, timeout: 20000 }, (err, _out, errOut) => {
-      if (err) {
-        if (cmd !== 'suspend' && tracker) tracker.start();
-        log('energía falló', String(errOut || err.message).slice(0, 300));
-        reject(new Error(/authoriz|autoriz|polkit|Access denied/i.test(String(errOut))
-          ? 'El sistema no me deja (falta permiso de polkit). Prueba desde el menú del escritorio.'
-          : `No se ha podido: ${String(errOut || err.message).trim().slice(0, 160)}`));
-      } else resolve({ ok: true });
-    });
+  // Linux: se prueban varias vías, de la más directa a la de la sesión de escritorio, hasta que una funcione
+  const env = require('./launcher').cleanEnv();
+  const run = (bin, args) => new Promise((resolve) => {
+    execFile(bin, args, { env, timeout: 15000 }, (err, out, errOut) => resolve({ ok: !err, out: String(out || ''), err: String(errOut || (err && err.message) || '').trim() }));
   });
+  const method = { poweroff: 'PowerOff', reboot: 'Reboot', suspend: 'Suspend' }[cmd];
+  const tries = [
+    ['systemctl', [cmd]],
+    // logind directamente (interactivo: si hace falta, el escritorio puede pedir permiso)
+    ['busctl', ['call', 'org.freedesktop.login1', '/org/freedesktop/login1', 'org.freedesktop.login1.Manager', method, 'b', 'true']],
+  ];
+  if (cmd !== 'suspend') {
+    // Plasma: cierra la sesión (y con ella lo que impedía apagar) y luego apaga, como el menú de inicio
+    const kde = cmd === 'reboot' ? 'logoutAndReboot' : 'logoutAndShutdown';
+    for (const q of ['qdbus6', 'qdbus-qt6', 'qdbus']) tries.push([q, ['org.kde.Shutdown', '/Shutdown', kde]]);
+    tries.push(['gnome-session-quit', [cmd === 'reboot' ? '--reboot' : '--power-off', '--no-prompt']]);
+  }
+  const errors = [];
+  for (const [bin, args] of tries) {
+    const r = await run(bin, args);
+    if (r.ok) { log('energía con', bin); return { ok: true, via: bin }; }
+    if (!/ENOENT|not found|No such file|ServiceUnknown|was not provided|Cannot find/i.test(r.err)) errors.push(`${bin}: ${r.err}`);
+    log('energía falló con', bin, r.err.slice(0, 200));
+  }
+  if (cmd !== 'suspend' && tracker) tracker.start();
+  // Quién lo impide (programas que bloquean el apagado o la suspensión)
+  let who = '';
+  try {
+    const r = await run('systemd-inhibit', ['--list', '--no-pager', '--no-legend']);
+    const what = cmd === 'suspend' ? 'sleep' : 'shutdown';
+    who = r.out.split('\n').filter((l) => l.includes(what) && /\bblock\b/.test(l)).map((l) => l.trim().split(/\s+/)[0]).filter(Boolean).join(', ');
+  } catch { /* */ }
+  const all = errors.join(' · ');
+  throw new Error(who ? `No me deja: lo está bloqueando ${who}. Ciérralo y vuelve a probar.`
+    : /authoriz|autoriz|polkit|Access denied|Interactive authentication/i.test(all) ? 'El sistema no me deja (falta permiso de polkit). Mira «Energía» en el README de Atrio.'
+      : `No se ha podido: ${all.slice(0, 200) || 'ninguna vía ha funcionado'}`);
 }
 
 // ---------- IPC ----------

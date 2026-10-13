@@ -144,6 +144,11 @@ async function until(fn, ms, every = 500) {
     ok(((cfgNow.overrides['custom:prueba'] || {}).links || []).length === 1, 'Guardada en la configuración de Atrio');
     const gd = await send('guide', { key: 'custom:prueba', url: 'https://deadlock.wiki/Heroes' });
     ok(gd && gd.ok, `Abrir la guía en el PC desde el móvil: ${gd && gd.msg}`);
+    // Apagar (en seco): la orden queda marcada como recibida antes de ejecutarse, para no repetirse al arrancar
+    const pw = await send('power', { action: 'apagar' });
+    ok(pw && pw.ok, `Apagar desde el móvil: ${pw && pw.msg}`);
+    const pwIds = Object.entries((await db('GET', `/users/${uid}/suite/cmd/atrio-prueba`)) || {}).filter(([, c]) => c && c.op === 'power');
+    ok(pwIds.length && pwIds.every(([, c]) => c.ack === true), 'La orden de apagar queda marcada como recibida');
 
     console.log('6. Un cambio del móvil llega al PC al momento');
     const d2 = { ...data, plays: [{ ...play, memos: [{ t: Date.now(), x: 'Apunte desde el móvil' }], updated: Date.now() + 1 }] };

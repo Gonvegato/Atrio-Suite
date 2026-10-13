@@ -128,8 +128,9 @@ const HANDLERS = {
   },
   async power(a) {
     if ((ctx.config().suite || {}).remotePower === false) throw new Error('En Atrio no está permitido apagar el equipo desde el móvil.');
-    // Primero se responde y después se apaga (si no, el móvil no se enteraría)
-    setTimeout(() => ctx.power(a && a.action).catch((e) => log('energía', e.message)), 1500);
+    // La orden ya está marcada como recibida («ack»): si el equipo se apaga antes de contestar, al encenderlo no se repite.
+    // Se espera al resultado para que el móvil sepa si de verdad se está apagando o qué lo impide.
+    await ctx.power(a && a.action);
     return { ok: true, msg: ({ apagar: 'Apagando', reiniciar: 'Reiniciando', suspender: 'Suspendiendo' })[a && a.action] || 'Hecho' };
   },
   async focus() { ctx.focus(); return { ok: true, msg: 'Atrio en primer plano' }; },
@@ -165,6 +166,8 @@ async function handleCommands() {
   }
   for (const [id, c] of Object.entries(mine)) {
     if (!c || c.res || busy.has(id) || done.has(id)) continue;
+    // Recibida antes de apagar/reiniciar y sin respuesta: no se vuelve a ejecutar al arrancar
+    if (c.ack) { done.add(id); continue; }
     const t = Number(c.t) || 0;
     if (now() - t > CMD_MAX_AGE) { done.add(id); del(`/suite/cmd/${me()}/${id}`).catch(() => {}); continue; }
     busy.add(id);
@@ -174,6 +177,7 @@ async function handleCommands() {
       try {
         if (!fn) throw new Error('Orden desconocida: actualiza Atrio.');
         log('orden', c.op, 'de', c.by || '?');
+        if (c.op === 'power') await put(`/suite/cmd/${me()}/${id}/ack`, true);
         res = await fn(c.a || {}, c.by);
       } catch (e) {
         res = { ok: false, msg: String(e.message || e).slice(0, 300) };

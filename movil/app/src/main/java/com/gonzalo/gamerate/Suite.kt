@@ -426,7 +426,11 @@ object Suite {
         tree?.let { onSuite(it) }
         val res = withTimeoutOrNull(timeoutMs) { w.await() }
         synchronized(waits) { waits.remove(id) }
-        res ?: fail("El PC no responde (¿Atrio está abierto y con tu cuenta?).")
+        if (res != null) return@withContext res
+        // Apagar/reiniciar: el PC la recibió («ack») pero se apagó antes de contestar
+        val acked = tree?.optJSONObject("cmd")?.optJSONObject(to)?.optJSONObject(id)?.optBoolean("ack") == true
+        if (acked) JSONObject().put("ok", true).put("msg", "${target()?.name ?: "El PC"} ha dejado de contestar: se está apagando")
+        else fail("El PC no responde (¿Atrio está abierto y con tu cuenta?).")
     }
 
     /** El juego del PC con esa clave (de la biblioteca de cualquier PC). */
