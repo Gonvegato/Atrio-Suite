@@ -114,8 +114,12 @@ Atrio en el móvil (emulador Android en GitHub Actions, con Atrio de verdad al l
 [en directo](docs/capturas/29_en_directo.png) ·
 [apunte rápido](docs/capturas/30_apunte.png) ·
 [por valorar](docs/capturas/31_por_valorar.png) ·
-[valorar la partida](docs/capturas/32_valorar_partida.png)
+[valorar la partida](docs/capturas/32_valorar_partida.png) ·
+[Guías en la ficha del juego](docs/capturas/34_ficha_guias.png) ·
+[guía abierta en el móvil](docs/capturas/35_guia_abierta.png)
 
 Atrio en el PC: [panel del móvil](docs/capturas/02-panel-suite.png) ·
 [ficha con partidas por valorar](docs/capturas/06-ficha-ronron.png) ·
-[ajustes del móvil](docs/capturas/07-ajustes-suite.png)
+[ajustes del móvil](docs/capturas/07-ajustes-suite.png) ·
+[Guías: inicio](docs/capturas/08-guias-inicio.png) ·
+[Guías: web guardada](docs/capturas/10-guias-guardada.png)

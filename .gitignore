@@ -1,6 +1,7 @@
 node_modules/
 dist/
 capturas/
+!docs/capturas/
 .gradle/
 build/
 !escritorio/build/
