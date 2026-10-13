@@ -45,7 +45,9 @@ data class LiveDev(
     val dev: String, val app: String, val name: String, val os: String, val online: Boolean, val at: Long,
     val game: LiveGame?, val canShot: Boolean,
     /** Minutos jugados hoy en ese PC. */
-    val today: Int = 0
+    val today: Int = 0,
+    /** Su Sunshine (streaming), si lo tiene instalado. */
+    val st: StreamHost? = null
 )
 
 /** Lo que se está jugando en un PC. */
@@ -268,7 +270,8 @@ object Suite {
                 d, o.optString("app"), o.optString("name", "?"), o.optString("os"),
                 o.optBoolean("on") && now - o.optLong("at") < ONLINE_MS, o.optLong("at"),
                 g?.let { LiveGame(it.optString("key"), it.optString("name"), it.optLong("sg"), it.optLong("s"), it.optString("cover"), it.optString("hero"), it.optString("logo")) },
-                o.optBoolean("shot", true), o.optInt("today", 0)
+                o.optBoolean("shot", true), o.optInt("today", 0),
+                o.optJSONObject("st")?.let { StreamHost.from(it) }
             )
         }.sortedByDescending { it.at }.toList()
         val lib = t?.optJSONObject("lib") ?: JSONObject()

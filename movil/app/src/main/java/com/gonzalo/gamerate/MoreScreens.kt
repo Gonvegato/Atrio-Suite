@@ -308,6 +308,7 @@ private fun ColumnScope.ReadCard(
         }
         if (kind.isGame) {
             Spacer(Modifier.height(22.dp))
+            FichaPlayButtons(g.id, g.name, Modifier.padding(bottom = 16.dp))
             GuidesSection(g.id, g.name)
         }
         if (kind.hasSoundtrack) {

@@ -237,6 +237,14 @@ tap "Juego de Prueba"; sleep 3
 must see "Guías" 10
 must see "example.com" 15
 shot 34_ficha_guias 1; alive "ficha guias"
+# Los dos botones grandes: jugar en el PC y en streaming (sin Moonlight instalado, ofrece instalarlo)
+must see "Jugar en el PC" 10
+must see "Streaming" 5
+tap "Streaming"; sleep 2
+must see "Falta Moonlight" 8
+shot 37_falta_moonlight 1
+tap "Ahora no"; sleep 1
+echo "   botones de jugar y de streaming en la ficha" | tee -a "$LOG"
 tap "example.com"; sleep 10
 shot 35_guia_abierta 1; alive "guia abierta"
 must see "Abrir en el navegador" 5

@@ -59,3 +59,13 @@ body.no-motion .suite-btn.live .suite-dot { animation: none; }
   position: absolute; right: .55rem; bottom: .55rem; min-width: 1.6rem; height: 1.6rem; padding: 0 .45rem; border-radius: .8rem;
   display: grid; place-items: center; background: var(--live); color: #fff; font-weight: 700; font-size: .85rem; box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
 }
+
+/* Ajustes → Streaming */
+.st-status { display: flex; flex-direction: column; gap: .55rem; margin: 1rem 0 1.2rem; padding: 1rem 1.2rem; border-radius: var(--radius); background: var(--surface); }
+.st-row { display: flex; align-items: center; gap: .7rem; }
+.st-dot { width: .6rem; height: .6rem; border-radius: 50%; flex: none; background: var(--fg-3); }
+.st-dot[data-on="true"] { background: #4cc38a; box-shadow: 0 0 0 3px rgba(76, 195, 138, .18); }
+.btn-row { display: flex; flex-wrap: wrap; gap: .6rem; margin: .4rem 0 .8rem; }
+.st-cmd { display: flex; align-items: center; gap: .8rem; margin: .4rem 0; flex-wrap: wrap; }
+.st-cmd > span { min-width: 13rem; color: var(--fg-2); }
+.st-cmd code { flex: 1; padding: .55rem .8rem; border-radius: .6rem; background: rgba(0,0,0,.28); font-family: ui-monospace, monospace; font-size: .92rem; user-select: all; }

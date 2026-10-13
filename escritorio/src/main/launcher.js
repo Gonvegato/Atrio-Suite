@@ -110,4 +110,4 @@ async function launch(game) {
   }
 }
 
-module.exports = { launch, cleanEnv };
+module.exports = { launch, cleanEnv, which, spawnDetached };

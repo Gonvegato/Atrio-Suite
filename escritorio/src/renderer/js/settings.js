@@ -18,6 +18,7 @@
     ['ocultos', 'Juegos ocultos', 'hide'],
     ['ronron', 'Cuenta', 'heart'],
     ['suite', 'Móvil', 'phone'],
+    ['streaming', 'Streaming', 'cast'],
     ['comportamiento', 'Comportamiento', 'sliders'],
   ];
 
@@ -397,7 +398,8 @@
 
   const ronron = () => A.ronron.settings(() => redrawKeepFocus());
   const suite = () => A.suite.settings(() => redrawKeepFocus());
-  const BUILDERS = { apariencia, bibliotecas, mando, emuladores, propios, steamgriddb, ocultos, ronron, suite, comportamiento };
+  const streaming = () => A.stream.settings(() => redrawKeepFocus());
+  const BUILDERS = { apariencia, bibliotecas, mando, emuladores, propios, steamgriddb, ocultos, ronron, suite, streaming, comportamiento };
 
   function draw() {
     for (const b of navBox.querySelectorAll('[data-sec]')) b.setAttribute('aria-current', String(b.dataset.sec === section));

@@ -108,6 +108,7 @@ fun PlayDetailScreen(
             // Guías a mano, lo primero: para tenerlas en el móvil mientras juegas en el PC
             if (kind.isGame) {
                 Spacer(Modifier.height(18.dp))
+                FichaPlayButtons(p.id, p.name, Modifier.padding(bottom = 16.dp))
                 GuidesSection(p.id, p.name)
             }
             Spacer(Modifier.height(16.dp))

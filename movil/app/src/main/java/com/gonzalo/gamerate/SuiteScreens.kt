@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Computer
+import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.Language
@@ -191,7 +192,22 @@ fun LiveCard(
                 if (play != null) RemoteButton(Icons.Rounded.Star, "Ficha", light = true) { onOpenPlay(play) }
                 val pg = Suite.pcGame(g.key)
                 if (pg != null && pg.links.isNotEmpty()) RemoteButton(Icons.Rounded.Language, "Guías", light = true) { onGuides(pg) }
-                RemoteButton(Icons.Rounded.SportsEsports, "Mando", light = true) { onRemote() }
+                if (pc.st?.on == true) {
+                    val ctx = LocalContext.current
+                    val scope = rememberCoroutineScope()
+                    var busy by remember { mutableStateOf(false) }
+                    var need by remember { mutableStateOf(false) }
+                    // Seguir la partida en el móvil: Moonlight directo a ese PC
+                    RemoteButton(Icons.Rounded.Cast, "Streaming", light = true, busy = busy) {
+                        busy = true
+                        scope.launch {
+                            val err = Stream.play(ctx, null)
+                            busy = false
+                            if (err == "MOONLIGHT") need = true else if (err != null) android.widget.Toast.makeText(ctx, err, android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    if (need) MoonlightDialog { need = false }
+                } else RemoteButton(Icons.Rounded.SportsEsports, "Mando", light = true) { onRemote() }
             }
         }
     }
@@ -637,7 +653,7 @@ fun SuiteScreen(
                     }
                 }
                 else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-                    if (pc == null) EmptySuite() else {
+                    if (pc == null) { EmptySuite(); if (Stream.host() != null) { Spacer(Modifier.height(20.dp)); StreamPanel() } } else {
                         Overline("Atrio")
                         Spacer(Modifier.height(10.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -645,6 +661,8 @@ fun SuiteScreen(
                             RemoteButton(Icons.Rounded.PhotoCamera, "Captura", busy = shooting) { shot() }
                             RemoteButton(Icons.Rounded.Search, "Rebuscar") { act("rescan") }
                         }
+                        Spacer(Modifier.height(24.dp))
+                        StreamPanel()
                         Spacer(Modifier.height(24.dp))
                         Overline("Energía")
                         Spacer(Modifier.height(10.dp))
@@ -747,6 +765,7 @@ fun PcGameSheet(g: PcGame, pcOnline: Boolean, onPlay: () -> Unit, onDismiss: () 
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 if (!adding) {
+                    PlayButtons(g.key, g.name, Modifier.padding(bottom = 16.dp)) { onDismiss() }
                     Overline("Guías y webs")
                     Spacer(Modifier.height(6.dp))
                     if (g.links.isEmpty()) Text("Aún no tiene ninguna. Añade una aquí, compártela desde el navegador (Compartir → Atrio) o guárdala en el PC desde Guías.", color = Muted, fontSize = 13.sp)
@@ -779,7 +798,7 @@ fun PcGameSheet(g: PcGame, pcOnline: Boolean, onPlay: () -> Unit, onDismiss: () 
                 if (url.isBlank()) return@TextButton
                 scope.launch { val (_, m) = Suite.addLink(g.key, u, name.trim()); say(m); onDismiss() }
             }) { Text("Guardar") }
-            else if (pcOnline) TextButton({ onPlay(); onDismiss() }) { Text("Jugar en el PC") }
+
         },
         dismissButton = { TextButton({ if (adding) adding = false else onDismiss() }) { Text(if (adding) "Atrás" else "Cerrar") } },
         shape = RoundedCornerShape(24.dp)

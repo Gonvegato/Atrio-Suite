@@ -61,7 +61,19 @@ async function until(fn, ms, every = 500) {
     behavior: { autostart: 'off', fullscreen: false, onLaunch: 'none' },
     suite: { segMin: -1 },
   }));
-  const env = { ...process.env, ATRIO_HOME: HOME, ATRIO_RONRON_DB: FB, ATRIO_RONRON_AUTH: FB, ATRIO_RONRON_EVERY: '3000', ATRIO_SUITE_BEAT: '4000', ATRIO_NO_SANDBOX: '1', ATRIO_POWER_DRY: '1' };
+  // Sunshine de mentira (streaming): instalado («sunshine» en el PATH), en marcha y con su API
+  const SUN = 47300 + Math.floor(Math.random() * 400);
+  const SUN_UUID = '0F1E2D3C-4B5A-6978-8796-A5B4C3D2E1F0';
+  const bin = path.join(OUT, 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  fs.writeFileSync(path.join(bin, 'sunshine'), '#!/bin/sh\nsleep 600\n', { mode: 0o755 });
+  fs.mkdirSync(path.join(HOME, '.config', 'sunshine'), { recursive: true });
+  fs.writeFileSync(path.join(HOME, '.config', 'sunshine', 'sunshine.conf'), `port = ${SUN}\nsunshine_name = PC-de-prueba\n`);
+  fs.writeFileSync(path.join(HOME, '.config', 'sunshine', 'sunshine_state.json'), JSON.stringify({ root: { uniqueid: SUN_UUID } }));
+  const fakeSun = spawn(process.execPath, [path.join(__dirname, 'fakesunshine.js'), String(SUN), path.join(OUT, 'sun')], { stdio: 'inherit' });
+  const cfgPath = path.join(HOME, '.config', 'atrio', 'config.json');
+  fs.writeFileSync(cfgPath, JSON.stringify({ ...JSON.parse(fs.readFileSync(cfgPath, 'utf8')), stream: { user: 'sol', pass: 'luna' } }));
+  const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, ATRIO_HOME: HOME, ATRIO_RONRON_DB: FB, ATRIO_RONRON_AUTH: FB, ATRIO_RONRON_EVERY: '3000', ATRIO_SUITE_BEAT: '4000', ATRIO_NO_SANDBOX: '1', ATRIO_POWER_DRY: '1' };
   for (const k of ['XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME', 'XDG_CURRENT_DESKTOP', 'WAYLAND_DISPLAY']) delete env[k];
   const electron = path.join(DESK, 'node_modules', 'electron', 'dist', 'electron');
   const atrio = spawn('xvfb-run', ['-a', '-s', '-screen 0 2560x1440x24', electron, '--no-sandbox', '--ventana', DESK], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -144,6 +156,15 @@ async function until(fn, ms, every = 500) {
     ok(((cfgNow.overrides['custom:prueba'] || {}).links || []).length === 1, 'Guardada en la configuración de Atrio');
     const gd = await send('guide', { key: 'custom:prueba', url: 'https://deadlock.wiki/Heroes' });
     ok(gd && gd.ok, `Abrir la guía en el PC desde el móvil: ${gd && gd.msg}`);
+    // Streaming: el PC publica su Sunshine, prepara el streaming y mete el PIN del móvil
+    const liveSt = await until(async () => { const v = await db('GET', `/users/${uid}/suite/live/atrio-prueba/st`); return v && v.on && v.run ? v : null; }, 40000);
+    ok(liveSt && liveSt.uuid === SUN_UUID && liveSt.name === 'PC-de-prueba' && liveSt.creds, `Sunshine visto desde el móvil: ${liveSt ? `${liveSt.name} · ${liveSt.uuid} · app ${liveSt.app}` : '-'}`);
+    const stm = await send('stream', {});
+    ok(stm && stm.ok && stm.uuid === SUN_UUID && stm.app === 'Desktop', `Preparar streaming: ${stm && stm.msg} (${stm && stm.name})`);
+    const bad = await send('pair', { pin: '9999', name: 'Móvil de prueba' });
+    ok(bad && !bad.ok, `PIN equivocado rechazado: ${bad && bad.msg}`);
+    const pr = await send('pair', { pin: '1234', name: 'Móvil de prueba' });
+    ok(pr && pr.ok, `Emparejar desde el móvil con el PIN de Moonlight: ${pr && pr.msg}`);
     // Apagar (en seco): la orden queda marcada como recibida antes de ejecutarse, para no repetirse al arrancar
     const pw = await send('power', { action: 'apagar' });
     ok(pw && pw.ok, `Apagar desde el móvil: ${pw && pw.msg}`);
@@ -171,6 +192,7 @@ async function until(fn, ms, every = 500) {
     spawn('pkill', ['-f', game]);
     await wait(1500);
     fake.kill();
+    fakeSun.kill();
     fs.writeFileSync(path.join(OUT, 'atrio.log'), logs.join(''));
     console.log(failed ? `\n${failed} comprobaciones fallidas (registro en ${OUT}/atrio.log)` : '\nTodo bien');
     process.exit(failed ? 1 : 0);

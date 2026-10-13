@@ -1,0 +1,394 @@
+package com.gonzalo.gamerate
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Cast
+import androidx.compose.material.icons.rounded.CastConnected
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.PowerSettingsNew
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
+import java.net.DatagramPacket
+import java.net.DatagramSocket
+import java.net.InetAddress
+
+/** Sunshine en un PC (lo publica Atrio del PC en su presencia, «st»). */
+data class StreamHost(
+    val on: Boolean, val running: Boolean, val name: String, val uuid: String, val app: String,
+    val lan: List<String>, val macs: List<String>, val tsIp: String, val tsName: String, val tsInstalled: Boolean,
+    val creds: Boolean, val allowed: Boolean
+) {
+    companion object {
+        private fun list(a: JSONArray?) = a?.let { x -> (0 until x.length()).map { x.optString(it) }.filter { it.isNotBlank() } } ?: emptyList()
+        fun from(o: JSONObject) = StreamHost(
+            o.optBoolean("on"), o.optBoolean("run"), o.optString("name"), o.optString("uuid"), o.optString("app", "Desktop").ifBlank { "Desktop" },
+            list(o.optJSONArray("lan")), list(o.optJSONArray("mac")), o.optString("ts"), o.optString("tsn"), o.optBoolean("tsi"),
+            o.optBoolean("creds"), o.optBoolean("ok", true)
+        )
+    }
+}
+
+/**
+ * Jugar en streaming: el PC (Atrio) arranca Sunshine y lanza el juego; aquí se abre Moonlight directamente en ese PC.
+ * Moonlight se abre por su «atajo» (ShortcutTrampoline), el mismo que usan sus accesos directos: UUID del PC + aplicación.
+ */
+object Stream {
+    const val MOONLIGHT = "com.limelight"
+    private const val TRAMPOLINE = "com.limelight.ShortcutTrampoline"
+    private val KNOWN = listOf("com.limelight", "com.limelight.root", "com.limelight.unofficial", "com.limelight.noir", "com.limelight.debug")
+
+    /** Moonlight (o una variante compatible) instalado: su paquete. */
+    fun moonlight(ctx: Context): String? {
+        val pm = ctx.packageManager
+        val launchers = try {
+            pm.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0).map { it.activityInfo.packageName }
+        } catch (e: Exception) { emptyList() }
+        return (KNOWN + launchers.filter { it.startsWith("com.limelight") }).distinct().firstOrNull { p ->
+            try { pm.getActivityInfo(ComponentName(p, TRAMPOLINE), 0); true } catch (e: Exception) { false }
+        }
+    }
+
+    fun installMoonlight(ctx: Context) = store(ctx, MOONLIGHT)
+    fun installTailscale(ctx: Context) = store(ctx, "com.tailscale.ipn")
+
+    private fun store(ctx: Context, pkg: String) {
+        try { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        catch (e: Exception) { openUrl(ctx, "https://play.google.com/store/apps/details?id=$pkg") }
+    }
+
+    /** Moonlight en su pantalla de inicio (para emparejar o elegir a mano). */
+    fun openMoonlight(ctx: Context): Boolean {
+        val pkg = moonlight(ctx) ?: return false
+        val i = ctx.packageManager.getLaunchIntentForPackage(pkg) ?: return false
+        ctx.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        return true
+    }
+
+    /** Moonlight directo al PC y a la aplicación de Sunshine. */
+    fun launch(ctx: Context, uuid: String, name: String, app: String): Boolean {
+        val pkg = moonlight(ctx) ?: return false
+        val i = Intent().setComponent(ComponentName(pkg, TRAMPOLINE)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (uuid.isNotBlank()) i.putExtra("UUID", uuid)
+        if (name.isNotBlank()) i.putExtra("Name", name)
+        i.putExtra("AppName", app.ifBlank { "Desktop" })
+        return try { ctx.startActivity(i); true } catch (e: Exception) { false }
+    }
+
+    /** El PC al que se manda el streaming: el conectado, o (para encenderlo) el último que tuvo Sunshine. */
+    fun host(): LiveDev? = Suite.target() ?: Suite.pcs().filter { it.st?.on == true }.maxByOrNull { it.at }
+
+    /**
+     * Prepara el PC (Sunshine y, si se da, el juego) y abre Moonlight. Devuelve un mensaje si algo falla.
+     */
+    suspend fun play(ctx: Context, key: String?): String? {
+        if (moonlight(ctx) == null) return "MOONLIGHT"
+        val pc = Suite.target() ?: return "El PC no está conectado. Enciéndelo (o abre Atrio en él) y vuelve a probar."
+        val st = pc.st
+        if (st != null && !st.on) return "${pc.name} no tiene Sunshine. En Atrio del PC: Ajustes → Streaming."
+        val r = Suite.sendRaw("stream", JSONObject().apply { if (key != null) put("key", key) }, pc.dev, 75_000)
+        if (!r.optBoolean("ok")) return r.optString("msg")
+        val uuid = r.optString("uuid").ifBlank { st?.uuid ?: "" }
+        val name = r.optString("name").ifBlank { st?.name ?: pc.name }
+        // Un momento para que el juego tome la pantalla antes de conectar
+        if (key != null) delay(1500)
+        return if (launch(ctx, uuid, name, r.optString("app").ifBlank { st?.app ?: "Desktop" })) null else "No se ha podido abrir Moonlight."
+    }
+
+    /** Encender el PC por red (Wake-on-LAN): solo en la misma red de casa y con la opción activada en la BIOS. */
+    suspend fun wake(h: StreamHost): Boolean = withContext(Dispatchers.IO) {
+        val macs = h.macs.mapNotNull { m -> m.split(':', '-').takeIf { it.size == 6 }?.map { it.toInt(16).toByte() } }
+        if (macs.isEmpty()) return@withContext false
+        val targets = (listOf("255.255.255.255") + h.lan.mapNotNull { ip -> ip.split('.').takeIf { it.size == 4 }?.let { "${it[0]}.${it[1]}.${it[2]}.255" } }).distinct()
+        var sent = false
+        try {
+            DatagramSocket().use { s ->
+                s.broadcast = true
+                for (mac in macs) {
+                    val pkt = ByteArray(6) { 0xFF.toByte() } + (0 until 16).flatMap { mac }.toByteArray()
+                    for (t in targets) for (port in listOf(9, 7)) {
+                        try { s.send(DatagramPacket(pkt, pkt.size, InetAddress.getByName(t), port)); sent = true } catch (e: Exception) { }
+                    }
+                }
+            }
+        } catch (e: Exception) { }
+        sent
+    }
+
+    suspend fun pair(pin: String, name: String): Pair<Boolean, String> =
+        Suite.send("pair", JSONObject().put("pin", pin).put("name", name), Suite.target()?.dev, 150_000)
+}
+
+private fun toast(ctx: Context, m: String) = Toast.makeText(ctx, m, Toast.LENGTH_LONG).show()
+
+/** Un botón grande de la pareja «Jugar en el PC / Jugar en streaming». */
+@Composable
+private fun BigPlay(icon: ImageVector, title: String, sub: String, brush: Brush, busy: Boolean, enabled: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(22.dp)
+    Row(
+        modifier.height(76.dp).clip(shape).background(brush).clickable(enabled = enabled && !busy) { onClick() }
+            .padding(horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(Modifier.size(42.dp).background(Color(0x2EFFFFFF), CircleShape), contentAlignment = Alignment.Center) {
+            if (busy) CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.5.dp)
+            else Icon(icon, null, tint = Color.White, modifier = Modifier.size(26.dp))
+        }
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(sub, color = Color(0xCCFFFFFF), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/**
+ * Los dos botones grandes de un juego del PC: abrirlo en el PC o jugarlo en este móvil en streaming.
+ * [key]: clave del juego en la biblioteca del PC.
+ */
+@Composable
+fun PlayButtons(key: String, name: String, modifier: Modifier = Modifier, onLaunched: (String) -> Unit = {}) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val pc = Suite.target()
+    val any = Stream.host()
+    var busyPc by remember { mutableStateOf(false) }
+    var busySt by remember { mutableStateOf(false) }
+    var needMoonlight by remember { mutableStateOf(false) }
+    var waking by remember { mutableStateOf(false) }
+    val running = pc?.game?.key == key
+    Column(modifier.fillMaxWidth().animateContentSize()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            BigPlay(
+                Icons.Rounded.PlayArrow, if (running) "En marcha" else "Jugar en el PC",
+                pc?.let { if (running) "Ya se juega en ${it.name}" else "Se abre en ${it.name}" } ?: "PC apagado",
+                Brush.linearGradient(listOf(Color(0xFF2B2B31), Color(0xFF17171A))), busyPc, pc != null && !running, Modifier.weight(1f)
+            ) {
+                busyPc = true
+                scope.launch { val (_, m) = Suite.send("launch", JSONObject().put("key", key), pc?.dev); busyPc = false; toast(ctx, m); onLaunched(m) }
+            }
+            BigPlay(
+                Icons.Rounded.Cast, "Streaming", if (running) "Seguir aquí, en el móvil" else "Jugar en este móvil",
+                Brush.linearGradient(listOf(Color(0xFF1F8A8A), Color(0xFF3B3FA8))), busySt, true, Modifier.weight(1f)
+            ) {
+                if (Stream.moonlight(ctx) == null) { needMoonlight = true; return@BigPlay }
+                if (pc == null) {
+                    val h = any?.st
+                    if (h != null && h.macs.isNotEmpty()) waking = true
+                    else toast(ctx, "El PC no está conectado: enciéndelo o abre Atrio en él.")
+                    return@BigPlay
+                }
+                busySt = true
+                scope.launch {
+                    val err = Stream.play(ctx, if (running) null else key)
+                    busySt = false
+                    if (err == "MOONLIGHT") needMoonlight = true else if (err != null) toast(ctx, err)
+                }
+            }
+        }
+    }
+    if (needMoonlight) MoonlightDialog { needMoonlight = false }
+    if (waking && any?.st != null) WakeDialog(any.name, any.st) { waking = false }
+}
+
+@Composable
+fun MoonlightDialog(onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.Cast, null) },
+        title = { Text("Falta Moonlight", fontFamily = Display) },
+        text = { Text("El streaming va con Moonlight, gratis y de código abierto. Instálalo, ábrelo una vez con el móvil en la wifi de casa, toca tu PC y escribe el PIN que te enseña en Atrio (PC → Streaming → Emparejar).") },
+        confirmButton = { TextButton({ onDismiss(); Stream.installMoonlight(ctx) }) { Text("Instalar Moonlight") } },
+        dismissButton = { TextButton(onDismiss) { Text("Ahora no") } },
+        shape = RoundedCornerShape(24.dp)
+    )
+}
+
+@Composable
+fun WakeDialog(pcName: String, h: StreamHost, onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var msg by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.PowerSettingsNew, null) },
+        title = { Text("¿Encender $pcName?", fontFamily = Display) },
+        text = {
+            Column {
+                Text("Atrio manda la señal de encendido por la red (Wake-on-LAN). Funciona con el móvil en la wifi de casa y la opción activada en la BIOS del PC.")
+                if (msg.isNotBlank()) { Spacer(Modifier.height(8.dp)); Text(msg, color = Muted, fontSize = 13.sp) }
+            }
+        },
+        confirmButton = {
+            TextButton({
+                scope.launch {
+                    msg = if (Stream.wake(h)) "Señal enviada. Cuando arranque y se abra Atrio, vuelve a tocar «Streaming»." else "No se ha podido mandar la señal."
+                    toast(ctx, msg)
+                }
+            }) { Text("Encender") }
+        },
+        dismissButton = { TextButton(onDismiss) { Text("Cerrar") } },
+        shape = RoundedCornerShape(24.dp)
+    )
+}
+
+@Composable
+private fun StatusLine(ok: Boolean, text: String, icon: ImageVector) {
+    Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(9.dp).background(if (ok) ColMusic else Line, CircleShape))
+        Spacer(Modifier.width(10.dp))
+        Icon(icon, null, tint = Muted, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(text, fontSize = 14.sp)
+    }
+}
+
+/** Panel «Streaming» de la pantalla del PC: estado, emparejar, fuera de casa, encender. */
+@Composable
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+fun StreamPanel(modifier: Modifier = Modifier) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val clip = LocalClipboardManager.current
+    val pc = Suite.target()
+    val any = Stream.host()
+    val h = (pc ?: any)?.st
+    val ml = remember { mutableStateOf(Stream.moonlight(ctx)) }
+    var pairing by remember { mutableStateOf(false) }
+    var waking by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { while (true) { ml.value = Stream.moonlight(ctx); delay(4000) } }
+    Column(modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp))
+        .background(Brush.linearGradient(listOf(Color(0x221F8A8A), Color(0x223B3FA8))))
+        .border(1.dp, Line, RoundedCornerShape(20.dp)).padding(16.dp).animateContentSize()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.CastConnected, null, tint = Charcoal)
+            Spacer(Modifier.width(8.dp))
+            Text("Streaming", fontFamily = Display, fontSize = 22.sp, modifier = Modifier.weight(1f))
+        }
+        Text("Juega a los juegos del PC en este móvil, en casa o con datos.", color = Muted, fontSize = 13.sp)
+        Spacer(Modifier.height(10.dp))
+        StatusLine(ml.value != null, if (ml.value != null) "Moonlight instalado" else "Moonlight no está instalado", Icons.Rounded.Cast)
+        StatusLine(h?.on == true, when {
+            h == null -> "Atrio del PC aún no ha dicho nada de Sunshine"
+            !h.on -> "El PC no tiene Sunshine (Atrio del PC: Ajustes → Streaming)"
+            h.running -> "Sunshine en marcha en ${h.name}"
+            else -> "Sunshine instalado (se arranca solo al jugar)"
+        }, Icons.Rounded.Wifi)
+        StatusLine(h?.tsIp?.isNotBlank() == true, when {
+            h?.tsIp?.isNotBlank() == true -> "Fuera de casa: Tailscale ${h.tsIp}"
+            h?.tsInstalled == true -> "Tailscale instalado en el PC pero desconectado"
+            else -> "Para jugar fuera de casa: Tailscale (opcional)"
+        }, Icons.Rounded.Public)
+        Spacer(Modifier.height(10.dp))
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (ml.value == null) FilledTonalButton({ Stream.installMoonlight(ctx) }) { Text("Instalar Moonlight") }
+            else FilledTonalButton({ Stream.openMoonlight(ctx) }) { Icon(Icons.Rounded.Cast, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Abrir Moonlight") }
+            if (pc != null && h?.on == true) OutlinedButton({ pairing = true }) { Icon(Icons.Rounded.Key, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Emparejar") }
+            if (pc != null && h?.on == true && !h.running) OutlinedButton({
+                busy = true
+                scope.launch { val (_, m) = Suite.send("sunshine", JSONObject(), pc.dev, 60_000); busy = false; toast(ctx, m) }
+            }, enabled = !busy) { Text(if (busy) "Arrancando…" else "Arrancar Sunshine") }
+            if (pc != null && h?.on == true) OutlinedButton({
+                busy = true
+                scope.launch { val err = Stream.play(ctx, null); busy = false; if (err == "MOONLIGHT") Stream.installMoonlight(ctx) else if (err != null) toast(ctx, err) }
+            }, enabled = !busy) { Text("Ver el escritorio") }
+            if (pc == null && h != null && h.macs.isNotEmpty()) OutlinedButton({ waking = true }) { Icon(Icons.Rounded.PowerSettingsNew, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Encender ${any?.name ?: "el PC"}") }
+        }
+        if (h?.tsIp?.isNotBlank() == true) {
+            Spacer(Modifier.height(12.dp))
+            Text("Fuera de casa", fontWeight = FontWeight.SemiBold)
+            Text("Con Tailscale en el móvil (misma cuenta que en el PC), añade el PC una vez en Moonlight con esta dirección (+ arriba a la derecha):", color = Muted, fontSize = 13.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(h.tsIp, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f))
+                IconButton({ clip.setText(AnnotatedString(h.tsIp)); toast(ctx, "Copiada") }) { Icon(Icons.Rounded.ContentCopy, "Copiar") }
+            }
+            TextButton({ Stream.installTailscale(ctx) }) { Icon(Icons.Rounded.Language, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Tailscale para el móvil") }
+        }
+    }
+    if (pairing) PairDialog(h?.creds == true) { pairing = false }
+    if (waking && any?.st != null) WakeDialog(any.name, any.st) { waking = false }
+}
+
+@Composable
+fun PairDialog(creds: Boolean, onDismiss: () -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var pin by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var msg by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        icon = { Icon(Icons.Rounded.Key, null) },
+        title = { Text("Emparejar con Moonlight", fontFamily = Display) },
+        text = {
+            Column {
+                Text("1. Abre Moonlight con el móvil en la wifi de casa y toca tu PC.\n2. Te enseña un PIN de 4 números: escríbelo aquí.", fontSize = 14.sp)
+                if (!creds) { Spacer(Modifier.height(8.dp)); Text("Antes, en Atrio del PC (Ajustes → Streaming), guarda tu usuario de Sunshine.", color = ColGeneral, fontSize = 13.sp) }
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(pin, { pin = it.filter(Char::isDigit).take(4) }, label = { Text("PIN") }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword), shape = RoundedCornerShape(14.dp))
+                if (msg.isNotBlank()) { Spacer(Modifier.height(8.dp)); Text(msg, color = Muted, fontSize = 13.sp) }
+                Spacer(Modifier.height(4.dp))
+                TextButton({ if (!Stream.openMoonlight(ctx)) Stream.installMoonlight(ctx) }) { Text("Abrir Moonlight") }
+            }
+        },
+        confirmButton = {
+            TextButton({
+                busy = true; msg = "Mandando el PIN al PC…"
+                scope.launch {
+                    val (ok, m) = Stream.pair(pin, android.os.Build.MODEL ?: "Móvil")
+                    busy = false; msg = m
+                    if (ok) { toast(ctx, m); onDismiss() }
+                }
+            }, enabled = pin.length == 4 && !busy) { Text(if (busy) "Un momento…" else "Emparejar") }
+        },
+        dismissButton = { TextButton({ onDismiss() }, enabled = !busy) { Text("Cerrar") } },
+        shape = RoundedCornerShape(24.dp)
+    )
+}
+
+/** Los botones grandes en la ficha de un juego, si ese juego está en la biblioteca de algún PC. */
+@Composable
+fun FichaPlayButtons(id: Long, name: String, modifier: Modifier = Modifier) {
+    val libs = Suite.libs
+    val g = remember(id, name, libs) { Guides.pcGameFor(id, name) } ?: return
+    PlayButtons(g.key, g.name, modifier)
+}

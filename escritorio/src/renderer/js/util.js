@@ -39,6 +39,7 @@ A.h = function h(sel, attrs, ...kids) {
 // Iconos SVG (trazo fino, coherentes entre sí)
 const ICONS = {
   play: '<path fill="currentColor" stroke="none" d="M7 4.5v15l12.5-7.5z"/>',
+  cast: '<rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 17v3.5"/><path d="M9.6 12.6a3.4 3.4 0 0 1 4.8 0M7.4 10.4a6.5 6.5 0 0 1 9.2 0"/>',
   more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
   star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
   starFill: '<path fill="currentColor" stroke="none" d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',

@@ -409,6 +409,16 @@ function setupSuiteIpc() {
   });
   ipcMain.handle('suite:shotShow', (_e, id) => { const f = suite.shotFile(id); if (f) shell.showItemInFolder(f); return !!f; });
   ipcMain.handle('suite:methods', () => require('./capture').methods());
+  // Streaming (Sunshine)
+  ipcMain.handle('stream:info', () => require('./sunshine').refresh());
+  ipcMain.handle('stream:start', () => require('./sunshine').startService());
+  ipcMain.handle('stream:check', async () => {
+    const sun = require('./sunshine');
+    await sun.refresh();
+    if (!sun.info().running) return { ok: false, msg: 'Sunshine no está en marcha.' };
+    try { const c = await sun.clients(); return { ok: true, msg: `Usuario correcto · ${c.length} ${c.length === 1 ? 'dispositivo emparejado' : 'dispositivos emparejados'}` }; } catch (e) { return { ok: false, msg: e.message }; }
+  });
+  ipcMain.handle('stream:web', () => shell.openExternal(`https://localhost:${(require('./sunshine').info().port || 47989) + 1}`));
   // Webs dentro de la página del juego
   ipcMain.handle('web:open', (_e, url, bounds) => web.open(url, bounds));
   ipcMain.handle('web:bounds', (_e, bounds) => { web.setBounds(bounds); return true; });

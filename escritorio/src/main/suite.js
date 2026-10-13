@@ -1,7 +1,8 @@
 'use strict';
 // La suite: Atrio y Ronrón conectados en tiempo real a través de tu cuenta (Firebase Realtime Database).
 //
-//   /users/<uid>/suite/live/<disp>        quién está conectado y a qué se juega ahora mismo (cada dispositivo el suyo)
+//   /users/<uid>/suite/live/<disp>        quién está conectado y a qué se juega ahora mismo (cada dispositivo el suyo;
+//                                         el PC añade «st»: su Sunshine para el streaming)
 //   /users/<uid>/suite/lib/<disp>         la biblioteca de cada PC (para lanzar juegos desde el móvil)
 //   /users/<uid>/suite/cmd/<disp>/<id>    órdenes para un dispositivo: { op, a, t, by } → él responde en «res»
 //   /users/<uid>/suite/shots/<id>         capturas: datos de la foto (los trozos van en /users/<uid>/shotdata/<id>)
@@ -13,6 +14,7 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const { watch } = require('./stream');
+const sun = require('./sunshine');
 const { XDG_DATA, readJson, mkdirp } = require('./paths');
 
 const CHUNK = 512 * 1024;           // caracteres de base64 por trozo (Firebase admite hasta 10 MB por texto)
@@ -72,6 +74,19 @@ function livePayload() {
     game: g || null,
     today: ctx.today ? ctx.today() : 0,
     shot: (ctx.config().suite || {}).remoteShot !== false,
+    st: streamPayload(),
+  };
+}
+
+// Streaming: lo que necesita el móvil para abrir Moonlight en este PC (y encenderlo por red)
+function streamPayload() {
+  const i = sun.info();
+  if (!i.installed) return { on: false };
+  const ts = i.ts || {};
+  return {
+    on: true, run: !!i.running, name: i.name || os.hostname(), uuid: i.uuid || '', app: i.app || 'Desktop',
+    lan: i.ips || [], mac: i.macs || [], ts: ts.up ? ts.ip : '', tsn: ts.up ? (ts.dns || '') : '', tsi: !!ts.installed,
+    creds: !!i.creds, ok: (ctx.config().stream || {}).remote !== false,
   };
 }
 async function pushLive(force) {
@@ -142,6 +157,31 @@ const HANDLERS = {
     ctx.focus();
     ctx.send('remote', { op: 'guide', key: a && a.key, url: a && a.url });
     return { ok: true, msg: 'Abierta en el PC' };
+  },
+  // Jugar en streaming: Sunshine en marcha y (si viene) el juego lanzado; el móvil abre Moonlight con lo que devuelve
+  async stream(a) {
+    if ((ctx.config().stream || {}).remote === false) throw new Error('En Atrio no está permitido preparar el streaming desde el móvil.');
+    const i = await sun.startService();
+    let msg = 'Sunshine listo';
+    if (a && a.key) {
+      const cur = ctx.current();
+      if (cur && cur.key === a.key) msg = `${cur.name} ya está en marcha`;
+      else {
+        if ((ctx.config().suite || {}).remoteLaunch === false) throw new Error('En Atrio no está permitido lanzar juegos desde el móvil.');
+        const g = await ctx.launch(a.key);
+        msg = `Abriendo ${g.name}`;
+      }
+    }
+    return { ok: true, msg, name: i.name, uuid: i.uuid || '', app: i.app || 'Desktop' };
+  },
+  // PIN que enseña Moonlight al emparejar: Atrio lo mete en Sunshine
+  async pair(a, by) {
+    await sun.pin(a && a.pin, (a && a.name) || by || 'Móvil');
+    return { ok: true, msg: 'Emparejado: ya puedes jugar en streaming' };
+  },
+  async sunshine() {
+    const i = await sun.startService();
+    return { ok: true, msg: `Sunshine en marcha en ${i.name}` };
   },
   async ping() { return { ok: true, msg: `Atrio ${ctx.version()} en ${os.hostname()}` }; },
 };
@@ -316,6 +356,7 @@ function check() {
 function start(c, ronron) {
   ctx = c;
   rr = ronron;
+  sun.init({ config: () => ctx.config().stream || {}, log, onChange: (i) => { pushLive(false); try { ctx.send('stream', i); } catch { /* */ } } });
   check();
   clearInterval(heart);
   heart = setInterval(() => {

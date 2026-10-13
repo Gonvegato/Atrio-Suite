@@ -2,6 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Streaming: ver si Moonlight está instalado (y abrirlo directo en el PC) -->
+    <queries>
+        <package android:name="com.limelight" />
+        <package android:name="com.limelight.root" />
+        <package android:name="com.limelight.unofficial" />
+        <package android:name="com.limelight.noir" />
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
     <application
         android:label="Atrio"
         android:icon="@mipmap/ic_launcher"

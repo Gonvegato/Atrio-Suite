@@ -41,6 +41,13 @@ const DEFAULTS = {
     autoSeg: true,         // al cerrar un juego que está en Ronrón, guardar la partida como parte para valorar
     segMin: 5,             // minutos mínimos para que una partida cuente como parte
   },
+  // Streaming al móvil (Sunshine en este PC + Moonlight en el móvil)
+  stream: {
+    user: '',              // usuario y contraseña del panel de Sunshine (para meter el PIN desde el móvil)
+    pass: '',
+    app: 'Desktop',        // la aplicación de Sunshine que abre Moonlight (el escritorio: el juego lo lanza Atrio)
+    remote: true,          // dejar que el móvil prepare el streaming (arrancar Sunshine, lanzar el juego, PIN)
+  },
   behavior: {
     onLaunch: 'minimize',   // minimize | none | quit
     returnOnExit: true,     // volver a Atrio al cerrar el juego
