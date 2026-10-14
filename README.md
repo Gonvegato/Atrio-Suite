@@ -76,15 +76,17 @@ Las dos usan la misma cuenta de Atrio (Firebase) y se hablan en **tiempo real** 
 46. Las guías **siguen abiertas** aunque salgas de la app o cierres la ventana: vuelves y están donde las dejaste.
     Si el móvil cerró la app del todo, se reabren en la última página vista («Seguías en…»; o «Empezar desde el inicio»).
 
-**Streaming: jugar en el móvil a los juegos del PC** (Sunshine en el PC + Moonlight en el móvil)
-47. Cada juego del PC tiene dos botones grandes: **Jugar en el PC** y **Streaming**. Streaming arranca Sunshine,
-    lanza el juego en el PC y abre Moonlight directamente en ese PC (sin elegir nada en Moonlight).
+**Streaming: jugar en el móvil a los juegos del PC** (Polaris en el PC + Nova en el móvil)
+47. Cada juego del PC tiene dos botones grandes: **Jugar en el PC** y **Streaming**. Streaming arranca Polaris,
+    lanza el juego en el PC y abre Nova directamente en ese PC (sin elegir nada en Nova).
 48. En la tarjeta en directo, **Streaming** para seguir en el móvil la partida que ya está en marcha.
-49. Emparejar sin ir al PC: Moonlight enseña un PIN, lo escribes en Atrio del móvil y Atrio se lo pasa a Sunshine.
-50. Fuera de casa: Atrio detecta **Tailscale** en el PC y te da su dirección para añadirla en Moonlight.
+49. **Emparejar con un toque**: Atrio pide a Polaris un código de un solo uso y se lo pasa a Nova en un enlace
+    (`art://…`); en Nova solo confirmas. También vale el PIN de 4 números que enseña Nova.
+50. Fuera de casa: Atrio detecta **Tailscale** en el PC y «Emparejar por Tailscale» añade el PC a Nova con esa dirección.
 51. **Encender el PC** desde el móvil (Wake-on-LAN, en la wifi de casa).
-52. En Atrio del PC → Ajustes → Streaming: estado de Sunshine, instalarlo (AUR o Flatpak), arrancarlo, tu usuario
-    de Sunshine (para el PIN), puertos del cortafuegos y qué aplicación de Sunshine abre Moonlight («Desktop»).
+52. En Atrio del PC → Ajustes → Streaming: estado de Polaris, instalarlo (AUR `polaris-gamestream-bin` o paquetes
+    oficiales), arrancarlo, tu usuario de Polaris (o su clave de API), puertos del cortafuegos y qué aplicación abre
+    Nova («Desktop»). Polaris solo existe para Linux.
 
 **Estilo** (móvil: Ajustes → Apariencia → Estilo · PC: Ajustes → Apariencia)
 53. **30 combinaciones** listas (Arcade, Cyberpunk, Revista, Fantasía, Terminal, Dracula, Tokyo Night…).
@@ -127,7 +129,8 @@ herramientas/  Firebase de mentira (con streaming), pruebas de punta a punta y p
 
 - `node herramientas/prueba-suite.js`: Firebase de mentira + Atrio de verdad (Xvfb) + un móvil simulado:
   directo, órdenes, captura a resolución real bajada byte a byte, lanzar juego, parte jugada, mezcla al instante,
-  streaming con un Sunshine de mentira (`herramientas/fakesunshine.js`: detectar, preparar, PIN bueno y malo) y apagar.
+  streaming con un Polaris de mentira (`herramientas/fakepolaris.js`: detectar, preparar, entrar con usuario y CSRF,
+  código de un solo uso, PIN bueno y malo) y apagar.
 - `cd movil && gradle testDebugUnitTest`: streaming y mezcla del móvil contra el Firebase de mentira.
 - `node herramientas/capturas-atrio.js`: capturas de la interfaz de Atrio con el móvil conectado.
 - Actions → «Prueba en emulador»: Atrio en un emulador Android con Atrio de verdad al lado, de principio a fin.
@@ -145,7 +148,6 @@ Atrio en el móvil (emulador Android en GitHub Actions, con Atrio de verdad al l
 [Guías en la ficha del juego](docs/capturas/34_ficha_guias.png) ·
 [guía abierta en el móvil](docs/capturas/35_guia_abierta.png) ·
 [la guía sigue al volver a la app](docs/capturas/36_guia_al_volver.png) ·
-[streaming sin Moonlight](docs/capturas/37_falta_moonlight.png) ·
 [Estilo](docs/capturas/40_estilo.png) ·
 [estilo Arcade](docs/capturas/42_arcade.png) ·
 [paletas](docs/capturas/43_paletas.png) ·

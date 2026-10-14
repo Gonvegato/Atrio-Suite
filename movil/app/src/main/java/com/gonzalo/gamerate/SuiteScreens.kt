@@ -197,16 +197,16 @@ fun LiveCard(
                     val scope = rememberCoroutineScope()
                     var busy by remember { mutableStateOf(false) }
                     var need by remember { mutableStateOf(false) }
-                    // Seguir la partida en el móvil: Moonlight directo a ese PC
+                    // Seguir la partida en el móvil: Nova directo a ese PC
                     RemoteButton(Icons.Rounded.Cast, "Streaming", light = true, busy = busy) {
                         busy = true
                         scope.launch {
                             val err = Stream.play(ctx, null)
                             busy = false
-                            if (err == "MOONLIGHT") need = true else if (err != null) android.widget.Toast.makeText(ctx, err, android.widget.Toast.LENGTH_LONG).show()
+                            if (err == "NOVA") need = true else if (err != null) android.widget.Toast.makeText(ctx, err, android.widget.Toast.LENGTH_LONG).show()
                         }
                     }
-                    if (need) MoonlightDialog { need = false }
+                    if (need) NovaDialog { need = false }
                 } else RemoteButton(Icons.Rounded.SportsEsports, "Mando", light = true) { onRemote() }
             }
         }

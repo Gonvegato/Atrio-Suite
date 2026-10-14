@@ -2,15 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Streaming: ver si Moonlight está instalado (y abrirlo directo en el PC) -->
+    <!-- Streaming: ver si Nova está instalado (y abrirlo directo en el PC o emparejarlo con un enlace art://) -->
     <queries>
-        <package android:name="com.limelight" />
-        <package android:name="com.limelight.root" />
-        <package android:name="com.limelight.unofficial" />
-        <package android:name="com.limelight.noir" />
+        <package android:name="com.papi.nova" />
+        <package android:name="com.papi.nova.root" />
+        <package android:name="com.papi.nova.pre" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="art" />
         </intent>
     </queries>
     <application

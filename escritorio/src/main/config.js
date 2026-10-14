@@ -41,12 +41,13 @@ const DEFAULTS = {
     autoSeg: true,         // al cerrar un juego que está en Ronrón, guardar la partida como parte para valorar
     segMin: 5,             // minutos mínimos para que una partida cuente como parte
   },
-  // Streaming al móvil (Sunshine en este PC + Moonlight en el móvil)
+  // Streaming al móvil (Polaris en este PC + Nova en el móvil)
   stream: {
-    user: '',              // usuario y contraseña del panel de Sunshine (para meter el PIN desde el móvil)
+    user: '',              // usuario y contraseña del panel de Polaris (para emparejar el móvil desde la app)
     pass: '',
-    app: 'Desktop',        // la aplicación de Sunshine que abre Moonlight (el escritorio: el juego lo lanza Atrio)
-    remote: true,          // dejar que el móvil prepare el streaming (arrancar Sunshine, lanzar el juego, PIN)
+    apiKey: '',            // o la clave de API de Polaris (api_key en polaris.conf), en lugar del usuario
+    app: 'Desktop',        // la aplicación de Polaris que abre Nova (el escritorio: el juego lo lanza Atrio)
+    remote: true,          // dejar que el móvil prepare el streaming (arrancar Polaris, lanzar el juego, emparejar)
   },
   behavior: {
     onLaunch: 'minimize',   // minimize | none | quit
